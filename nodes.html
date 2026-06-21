@@ -1215,6 +1215,7 @@
         zoom *= e.deltaY < 0 ? 1.1 : 0.9;
         zoom = Math.max(0.2, Math.min(5, zoom));
         window.__zoom = zoom;
+        centerAnim = null;
         draw();
       }, { passive: false });
 
@@ -1224,6 +1225,7 @@
         dragStartX = e.clientX - offsetX;
         dragStartY = e.clientY - offsetY;
         if (snapAnim) { cancelAnimationFrame(snapAnim); snapAnim = null; }
+        centerAnim = null;
       });
       window.addEventListener('mousemove', function(e) {
         if (!isDragging) return;
@@ -1259,6 +1261,7 @@
           pinchDist0 = Math.sqrt(dx * dx + dy * dy);
           pinchZoom0 = zoom;
           if (snapAnim) { cancelAnimationFrame(snapAnim); snapAnim = null; }
+          centerAnim = null;
         } else {
           var t = e.changedTouches[0];
           touchId = t.identifier;
@@ -1266,6 +1269,7 @@
           dragStartX = t.clientX - offsetX;
           dragStartY = t.clientY - offsetY;
           if (snapAnim) { cancelAnimationFrame(snapAnim); snapAnim = null; }
+          centerAnim = null;
         }
       }, { passive: true });
       canvas.addEventListener('touchmove', function(e) {
