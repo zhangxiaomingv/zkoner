@@ -1436,6 +1436,14 @@
         zoom = window.__zoom || zoom;
         pulsePhase = Math.min(((time || 0) - pulseStart) / 3000, 1);
         sphereRotY += 0.035;
+        // 应用居中动画
+        applyCenterAnim();
+        // 更新高亮圈位置（跟随动画）
+        if (highlightEl.classList.contains('show') && _queryNodeIdx > 0) {
+          var _np = spiralPos(_queryNodeIdx - 1);
+          highlightEl.style.left = _np.x + 'px';
+          highlightEl.style.top = _np.y + 'px';
+        }
         draw();
         // 2D→3D 过渡
         var transit3D = Math.max(0, Math.min(1, (zoom - 3.5) / 1.5));
@@ -1539,7 +1547,7 @@
           });
       }
 
-      // ── 节点查询 → 详情面板 ──
+      // ── 节点查询 → 平滑居中 → 详情面板 ──
       var highlightEl = document.getElementById('queryHighlight');
       var queryInput = document.getElementById('nodeQuery');
       var queryBtn = document.getElementById('nodeQueryBtn');
@@ -1556,22 +1564,88 @@
       var dpGpgIcon = document.getElementById('dpGpgIcon');
       var dpGpgText = document.getElementById('dpGpgText');
 
+      // ── 平滑居中动画状态 ──
+      var centerAnim = null;  // { startZoom, startOX, startOY, targetZoom, targetOX, targetOY, startTime, duration, onDone }
+      var _queryNodeIdx = 0;  // 当前查询的节点序号（用于更新高亮圈位置）
+
+      function animateCenter(targetOX, targetOY, targetZoom, onDone) {
+        if (snapAnim) { cancelAnimationFrame(snapAnim); snapAnim = null; }
+        if (centerAnim) centerAnim = null;
+        centerAnim = {
+          startZoom: zoom, startOX: offsetX, startOY: offsetY,
+          targetZoom: targetZoom, targetOX: targetOX, targetOY: targetOY,
+          startTime: performance.now(), duration: 650,
+          onDone: onDone || null
+        };
+      }
+
+      function applyCenterAnim() {
+        if (!centerAnim) return;
+        var a = centerAnim;
+        var t = Math.min((performance.now() - a.startTime) / a.duration, 1);
+        var ease = 1 - Math.pow(1 - t, 3);  // ease-out cubic
+        zoom = a.startZoom + (a.targetZoom - a.startZoom) * ease;
+        offsetX = a.startOX + (a.targetOX - a.startOX) * ease;
+        offsetY = a.startOY + (a.targetOY - a.startOY) * ease;
+        window.__zoom = zoom;
+        if (t >= 1) {
+          zoom = a.targetZoom;
+          offsetX = a.targetOX;
+          offsetY = a.targetOY;
+          window.__zoom = zoom;
+          centerAnim = null;
+          if (a.onDone) { a.onDone(); a.onDone = null; }
+        }
+      }
+
+      function centerOnNode(idx) {
+        // 计算使节点(idx)居中的 offset
+        var angle = 2 * Math.PI * (idx - 1) / nodesPerRev + Math.PI / 3;
+        var radius = (baseR + (idx - 1) / nodesPerRev * radiusStep);
+        var dx = radius * Math.cos(angle);
+        var dy = radius * Math.sin(angle);
+        // 用当前 zoom 计算自然偏移，然后取反得目标 offset
+        var curZ = zoom;
+        var targetOX = -dx * curZ;
+        var targetOY = -dy * curZ;
+        // 如果 zoom 太小，缩放到 0.7 让节点有上下文
+        var targetZoom = curZ < 0.5 ? 0.7 : curZ;
+        // 但如果离中心太远 > 200px 且 zoom < 0.5，适当放大
+        var distFromCenter = Math.sqrt(dx*dx + dy*dy) * curZ;
+        if (distFromCenter > 300 && curZ < 0.6) {
+          targetZoom = 0.7;
+          // 重新计算目标 offset（用 targetZoom）
+          targetOX = -dx * targetZoom;
+          targetOY = -dy * targetZoom;
+        }
+        animateCenter(targetOX, targetOY, targetZoom);
+      }
+
       function closeDetail() {
         dpOverlay.classList.remove('show');
         dpPanel.classList.remove('show');
+        highlightEl.classList.remove('show');
+        _queryNodeIdx = 0;
+        // 平滑回到中心：zoom 0.3，无 offset
+        animateCenter(0, 0, 0.3);
       }
 
       function showDetail(val) {
         if (isNaN(val) || val < 1 || val > maxIndex) {
           highlightEl.classList.remove('show');
+          _queryNodeIdx = 0;
           return;
         }
-        var n = spiralPos(val - 1);
-        highlightEl.style.left = n.x + 'px';
-        highlightEl.style.top = n.y + 'px';
-        highlightEl.classList.add('show');
 
-        // 更新滚动内容区高亮
+        _queryNodeIdx = val;
+        // 先居中，居中完成后设高亮（初始位置，renderLoop 持续更新）
+        var _ni = spiralPos(val - 1);
+        highlightEl.style.left = _ni.x + 'px';
+        highlightEl.style.top = _ni.y + 'px';
+        highlightEl.classList.add('show');
+        centerOnNode(val);
+
+        // 更新表格行高亮
         var rows = document.querySelectorAll('#nodeTableBody tr');
         for (var ri = 0; ri < rows.length; ri++) rows[ri].classList.remove('hl');
         var targetRow = document.querySelector('#nodeTableBody tr[data-idx="' + val + '"]');
