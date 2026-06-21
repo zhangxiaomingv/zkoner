@@ -236,13 +236,79 @@
       .dp-name { font-size: 20px; }
     }
 
-    /* ── Scroll Content ── */
-    .scroll-content {
-      position: relative; z-index: 10;
-      min-height: 50vh;
-      background: linear-gradient(180deg, rgba(11,14,20,0.95) 0%, #0B0E14 100%);
-      padding-top: 20px;
+    /* ── About Panel (寅图说明弹窗) ── */
+    .about-overlay {
+      position: fixed; inset: 0; z-index: 400;
+      background: rgba(0,0,0,0.6);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.35s ease;
     }
+    .about-overlay.show { opacity: 1; pointer-events: auto; }
+    .about-panel {
+      position: fixed; top: 50%; left: 50%; z-index: 410;
+      transform: translate(-50%, -50%) scale(0.92);
+      width: 520px; max-width: 92vw;
+      max-height: 85vh; max-height: 85dvh;
+      overflow-y: auto;
+      background: rgba(14, 16, 26, 0.96);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 32px;
+      color: #fff;
+      font-family: 'Inter', system-ui, sans-serif;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 20px 80px rgba(0,0,0,0.6);
+    }
+    .about-panel.show {
+      opacity: 1; pointer-events: auto;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    .about-close {
+      position: absolute; top: 16px; right: 16px;
+      background: none; border: none; color: rgba(255,255,255,0.3);
+      font-size: 20px; cursor: pointer; padding: 4px 10px;
+      line-height: 1; border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .about-close:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .about-panel .ap-title {
+      font-family: 'Ma Shan Zheng', serif;
+      font-size: 28px; font-weight: 400;
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 20px;
+      padding-right: 40px;
+    }
+    .about-panel .ap-title small {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px; font-weight: 300;
+      color: rgba(255,255,255,0.3);
+      margin-left: 10px;
+    }
+    .about-panel p {
+      font-size: 14px; line-height: 1.8;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 14px;
+    }
+    .about-panel .ap-section { margin-bottom: 24px; }
+    .about-panel .ap-section:last-child { margin-bottom: 0; }
+    .about-panel .ap-label {
+      font-size: 11px; letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.3); text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .about-panel .stats-grid { margin: 16px 0; }
+    .about-panel .howto-steps { margin: 0; }
+    .about-panel .node-table-wrap { margin: 12px 0; }
+    @media (max-width: 540px) {
+      .about-panel { padding: 24px 20px; }
+      .about-panel .ap-title { font-size: 22px; }
+    }
+
+    /* ── Scroll Content (hidden, moved to about panel) ── */
+    .scroll-content { display: none; }
     .section-yintu {
       max-width: 680px; margin: 0 auto;
       padding: 60px 20px 40px;
@@ -453,6 +519,7 @@
     <span class="nav-subtitle">每个节点 = 一个数字锚点 · 当前 <span class="nav-sub-num" id="supplyCount">1</span>/129600</span>
     <div class="nav-right">
       <div class="nav-links">
+        <a href="javascript:void(0)" id="aboutBtn">关于寅图</a>
         <a href="index.html">首页</a>
       </div>
     </div>
@@ -494,22 +561,22 @@
     <canvas id="nodeCanvas"></canvas>
     <canvas id="threeCanvas"></canvas>
     <div class="hero-scroll-hint" id="heroScrollHint">
-      向下滚动查看更多
-      <div class="hero-scroll-hint-arrow"></div>
+      ∞
+      <div class="hero-scroll-hint-arrow" style="border-color:rgba(255,255,255,0.15);margin-top:4px;width:12px;height:12px"></div>
     </div>
   </div>
 
-  <div class="scroll-content" id="scrollContent">
-    <div class="section-yintu" id="aboutSection">
-      <h2>什么是寅图 <small>Yin Map</small></h2>
-      <p>
-        寅图是一个群体引力图谱——129,600 个固定位置，每个位置对应一个数字锚点。
-        归位不是注册，是存在到了那个份上。
-      </p>
-      <p>
-        每个节点由 GPG 签名 git commit 永久记录，任何人都可以 fork 仓库作为独立见证。
-        智慧在螺旋中生长，秩序从混沌中涌现。
-      </p>
+  <!-- ── About Panel（寅图说明弹窗） ── -->
+  <div class="about-overlay" id="aboutOverlay"></div>
+  <div class="about-panel" id="aboutPanel">
+    <button class="about-close" id="aboutClose">✕</button>
+    <div class="ap-title">寅图 <small>Yin Map</small></div>
+    <div class="ap-section">
+      <p>寅图是一个群体引力图谱——129,600 个固定位置，每个位置对应一个数字锚点。归位不是注册，是存在到了那个份上。</p>
+      <p>每个节点由 GPG 签名 git commit 永久记录，任何人都可以 fork 仓库作为独立见证。智慧在螺旋中生长，秩序从混沌中涌现。</p>
+    </div>
+    <div class="ap-section">
+      <div class="ap-label">统计</div>
       <div class="stats-grid" id="statsGrid">
         <div class="stat-card">
           <div class="num" id="statTotal">129,600</div>
@@ -524,28 +591,23 @@
           <div class="lbl">GPG 签名</div>
         </div>
       </div>
-
-      <h2 style="margin-top:40px">已归位节点</h2>
+    </div>
+    <div class="ap-section">
+      <div class="ap-label">已归位节点</div>
       <div class="node-table-wrap">
         <table class="node-table" id="nodeTable">
           <thead>
-            <tr>
-              <th>序号</th>
-              <th>地支</th>
-              <th>节点</th>
-              <th>URL</th>
-              <th>归位日</th>
-              <th>GPG</th>
-            </tr>
+            <tr><th>序号</th><th>地支</th><th>节点</th><th>URL</th><th>归位日</th><th>GPG</th></tr>
           </thead>
           <tbody id="nodeTableBody">
             <tr><td colspan="6" style="text-align:center;color:rgba(255,255,255,0.2);padding:24px">加载中...</td></tr>
           </tbody>
         </table>
       </div>
-
-      <h2 style="margin-top:40px">归位指引</h2>
-      <p>节点归位完全免费，序号的价值来自天道秩序中的真实存在，不是商品。</p>
+    </div>
+    <div class="ap-section">
+      <div class="ap-label">归位指引</div>
+      <p style="margin-bottom:12px">节点归位完全免费，序号的价值来自天道秩序中的真实存在，不是商品。</p>
       <ol class="howto-steps">
         <li>你的域名部署 <code style="font-size:12px;color:rgba(255,200,68,0.7)">schema.json</code> + <code style="font-size:12px;color:rgba(255,200,68,0.7)">timeline.json</code></li>
         <li>Fork <a href="https://github.com/zhangxiaomingv/zkoner" target="_blank" style="color:rgba(68,150,255,0.7)">zkoner 仓库</a> 或提 Issue 告知你的域名</li>
@@ -1586,6 +1648,33 @@
       dpCloseBtn.addEventListener('click', closeDetail);
       dpOverlay.addEventListener('click', closeDetail);
 
+      // ── About 面板 ──
+      var aboutOverlay = document.getElementById('aboutOverlay');
+      var aboutPanel = document.getElementById('aboutPanel');
+      var aboutBtn = document.getElementById('aboutBtn');
+      var aboutClose = document.getElementById('aboutClose');
+
+      function showAbout() {
+        aboutOverlay.classList.add('show');
+        aboutPanel.classList.add('show');
+        // 确保表格已加载
+        if (typeof updateNodeTable === 'function' && Object.keys(nodeData).length > 0) {
+          var tb = document.getElementById('nodeTableBody');
+          if (tb && tb.children.length <= 1) updateNodeTable();
+        }
+      }
+      function hideAbout() {
+        aboutOverlay.classList.remove('show');
+        aboutPanel.classList.remove('show');
+      }
+      aboutBtn.addEventListener('click', showAbout);
+      aboutClose.addEventListener('click', hideAbout);
+      aboutOverlay.addEventListener('click', hideAbout);
+      // ESC 键关闭
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') { hideAbout(); closeDetail(); }
+      });
+
       // ── 表格行点击 → 详情面板 ──
       var nodeTableBody = document.getElementById('nodeTableBody');
       if (nodeTableBody) {
@@ -1754,17 +1843,8 @@
     initReveal();
   </script>
   <script>
-    // Scroll-hint fade on scroll
-    (function() {
-      var hint = document.getElementById('heroScrollHint');
-      if (!hint) return;
-      var onScroll = function() {
-        if (window.scrollY > 20) hint.classList.add('hidden');
-        else hint.classList.remove('hidden');
-      };
-      window.addEventListener('scroll', onScroll, { passive: true });
-    })();
-
+    // Nav "关于寅图" button — also make clicking active nav link smooth
+    // (about panel toggling is handled in the main IIFE)
   </script>
 
 </body>
