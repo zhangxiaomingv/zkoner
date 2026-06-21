@@ -120,7 +120,6 @@
       color: rgba(255,255,255,0.5); font-size: 12px; font-weight: 400;
       letter-spacing: 1px; margin-right: 12px; user-select: none;
     }
-    .node-info { display: none; }
     .query-highlight {
       position: fixed; pointer-events: none; z-index: 50;
       border: 1.5px solid rgba(255,255,255,0.6);
@@ -307,8 +306,7 @@
       .about-panel .ap-title { font-size: 22px; }
     }
 
-    /* ── Scroll Content (hidden, moved to about panel) ── */
-    .scroll-content { display: none; }
+    /* ── Scroll Content (moved to about panel) ── */
     .section-yintu {
       max-width: 680px; margin: 0 auto;
       padding: 60px 20px 40px;
@@ -483,7 +481,6 @@
       .query-box { height: 40px; padding: 0 8px 0 12px; }
       .query-box input { width: 58px; }
       .query-box .q-go { padding: 6px 8px; }
-      .node-info { display: none; }
       .yintu { font-size: 48px; }
       .query-highlight { width: 18px; height: 18px; }
     }
@@ -1215,7 +1212,6 @@
         zoom *= e.deltaY < 0 ? 1.1 : 0.9;
         zoom = Math.max(0.2, Math.min(5, zoom));
         window.__zoom = zoom;
-        centerAnim = null;
         draw();
       }, { passive: false });
 
@@ -1225,7 +1221,6 @@
         dragStartX = e.clientX - offsetX;
         dragStartY = e.clientY - offsetY;
         if (snapAnim) { cancelAnimationFrame(snapAnim); snapAnim = null; }
-        centerAnim = null;
       });
       window.addEventListener('mousemove', function(e) {
         if (!isDragging) return;
@@ -1261,16 +1256,14 @@
           pinchDist0 = Math.sqrt(dx * dx + dy * dy);
           pinchZoom0 = zoom;
           if (snapAnim) { cancelAnimationFrame(snapAnim); snapAnim = null; }
-          centerAnim = null;
-        } else {
+          } else {
           var t = e.changedTouches[0];
           touchId = t.identifier;
           isDragging = true;
           dragStartX = t.clientX - offsetX;
           dragStartY = t.clientY - offsetY;
           if (snapAnim) { cancelAnimationFrame(snapAnim); snapAnim = null; }
-          centerAnim = null;
-        }
+          }
       }, { passive: true });
       canvas.addEventListener('touchmove', function(e) {
         if (e.touches.length === 2 && pinchDist0 > 0) {
@@ -1406,30 +1399,6 @@
         return d.innerHTML;
       }
 
-      // ── 渐进揭示动画（首次加载螺旋渐显） ──
-      var revealProgress = 0;
-      var revealTarget = 0;
-      var revealStartTime = 0;
-      function startReveal() {
-        revealTarget = 1;
-        revealStartTime = performance.now();
-        // 降级缩小再恢复，制造初始缩放效果
-        window.__zoom = 0.15;
-        zoom = 0.15;
-        // 延迟启动揭示
-        setTimeout(function() {
-          window.__zoom = 0.2;
-          zoom = 0.2;
-          draw();
-        }, 100);
-      }
-      startReveal();
-      // 揭示过程中跟踪
-      var revealTimer = setInterval(function() {
-        if (revealProgress >= 1) { clearInterval(revealTimer); return; }
-        revealProgress = Math.min(1, (performance.now() - revealStartTime) / 2000);
-      }, 50);
-
       setInterval(function() {
         triBase += 1;
         if (triBase > triMax) triBase = 0;
@@ -1440,14 +1409,6 @@
         zoom = window.__zoom || zoom;
         pulsePhase = Math.min(((time || 0) - pulseStart) / 3000, 1);
         sphereRotY += 0.035;
-        // 应用居中动画
-        applyCenterAnim();
-        // 更新高亮圈位置（跟随动画）
-        if (highlightEl.classList.contains('show') && _queryNodeIdx > 0) {
-          var _np = spiralPos(_queryNodeIdx - 1);
-          highlightEl.style.left = _np.x + 'px';
-          highlightEl.style.top = _np.y + 'px';
-        }
         draw();
         // 2D→3D 过渡
         var transit3D = Math.max(0, Math.min(1, (zoom - 3.5) / 1.5));
@@ -1568,81 +1529,21 @@
       var dpGpgIcon = document.getElementById('dpGpgIcon');
       var dpGpgText = document.getElementById('dpGpgText');
 
-      // ── 平滑居中动画状态 ──
-      var centerAnim = null;  // { startZoom, startOX, startOY, targetZoom, targetOX, targetOY, startTime, duration, onDone }
-      var _queryNodeIdx = 0;  // 当前查询的节点序号（用于更新高亮圈位置）
-
-      function animateCenter(targetOX, targetOY, targetZoom, onDone) {
-        if (snapAnim) { cancelAnimationFrame(snapAnim); snapAnim = null; }
-        if (centerAnim) centerAnim = null;
-        centerAnim = {
-          startZoom: zoom, startOX: offsetX, startOY: offsetY,
-          targetZoom: targetZoom, targetOX: targetOX, targetOY: targetOY,
-          startTime: performance.now(), duration: 650,
-          onDone: onDone || null
-        };
-      }
-
-      function applyCenterAnim() {
-        if (!centerAnim) return;
-        var a = centerAnim;
-        var t = Math.min((performance.now() - a.startTime) / a.duration, 1);
-        var ease = 1 - Math.pow(1 - t, 3);  // ease-out cubic
-        zoom = a.startZoom + (a.targetZoom - a.startZoom) * ease;
-        offsetX = a.startOX + (a.targetOX - a.startOX) * ease;
-        offsetY = a.startOY + (a.targetOY - a.startOY) * ease;
-        window.__zoom = zoom;
-        if (t >= 1) {
-          zoom = a.targetZoom;
-          offsetX = a.targetOX;
-          offsetY = a.targetOY;
-          window.__zoom = zoom;
-          centerAnim = null;
-          if (a.onDone) { a.onDone(); a.onDone = null; }
-        }
-      }
-
-      function centerOnNode(idx) {
-        // 计算使节点(idx)居中的 offset 和合适 zoom
-        var angle = 2 * Math.PI * (idx - 1) / nodesPerRev + Math.PI / 3;
-        var radius = (baseR + (idx - 1) / nodesPerRev * radiusStep);
-        var dx = radius * Math.cos(angle);
-        var dy = radius * Math.sin(angle);
-        var curZ = zoom;
-        var distFromCenter = Math.sqrt(dx*dx + dy*dy) * curZ;
-        // 目标 zoom：现在太小就放大，太大就缩小
-        var targetZoom = curZ;
-        if (curZ < 0.5) targetZoom = 0.7;
-        else if (curZ > 1.2) targetZoom = 1.0;
-        // offset 必须与 targetZoom 一致，否则最终位置不对
-        var targetOX = -dx * targetZoom;
-        var targetOY = -dy * targetZoom;
-        animateCenter(targetOX, targetOY, targetZoom);
-      }
-
       function closeDetail() {
         dpOverlay.classList.remove('show');
         dpPanel.classList.remove('show');
         highlightEl.classList.remove('show');
-        _queryNodeIdx = 0;
-        // 平滑回到中心：zoom 0.3，无 offset
-        animateCenter(0, 0, 0.3);
       }
 
       function showDetail(val) {
         if (isNaN(val) || val < 1 || val > maxIndex) {
           highlightEl.classList.remove('show');
-          _queryNodeIdx = 0;
           return;
         }
-
-        _queryNodeIdx = val;
-        // 先居中，居中完成后设高亮（初始位置，renderLoop 持续更新）
-        var _ni = spiralPos(val - 1);
-        highlightEl.style.left = _ni.x + 'px';
-        highlightEl.style.top = _ni.y + 'px';
+        var n = spiralPos(val - 1);
+        highlightEl.style.left = n.x + 'px';
+        highlightEl.style.top = n.y + 'px';
         highlightEl.classList.add('show');
-        centerOnNode(val);
 
         // 更新表格行高亮
         var rows = document.querySelectorAll('#nodeTableBody tr');
@@ -1911,13 +1812,8 @@
     }
     animate(0);
   </script>
-  <script type="module">
-    import { initReveal } from './assets/js/reveal.js';
-    initReveal();
-  </script>
   <script>
-    // Nav "关于寅图" button — also make clicking active nav link smooth
-    // (about panel toggling is handled in the main IIFE)
+    // (about panel toggling and other UI handled in main IIFE)
   </script>
 
 </body>
