@@ -97,7 +97,7 @@ git tag --verify v1.0
   "chainId": "zkoner-2026",
   "chainRoot": "https://zkoner.com",
   "registry": "https://github.com/zhangxiaomingv/zkoner/tree/main/registry",
-  "maxIndex": 129600
+  "maxIndex": 384
 }
 ```
 

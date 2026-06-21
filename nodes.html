@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="寅图 — 群体引力图谱。129600个固定位置，每个节点 = 一个数字锚点。螺旋可视化、GPG验证。" />
+  <meta name="description" content="寅图 — 群体引力图谱。384个固定位置，每个节点 = 一个数字锚点。螺旋可视化、GPG验证。" />
   <link rel="canonical" href="https://zkoner.com/nodes.html" />
   <title>节点 — ZKoner</title>
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
@@ -507,13 +507,13 @@
         <span class="query-label">查询</span>
         <div class="query-box">
           <span class="q-icon">○</span>
-          <input id="nodeQuery" type="number" min="1" max="129600" placeholder="输入序号" />
+          <input id="nodeQuery" type="number" min="1" max="384" placeholder="输入序号" />
           <span class="q-sep"></span>
           <button class="q-go" id="nodeQueryBtn">→</button>
         </div>
       </div>
     </div>
-    <span class="nav-subtitle">每个节点 = 一个数字锚点 · 当前 <span class="nav-sub-num" id="supplyCount">1</span>/129600</span>
+    <span class="nav-subtitle">每个节点 = 一个数字锚点 · 当前 <span class="nav-sub-num" id="supplyCount">1</span>/384</span>
     <div class="nav-right">
       <div class="nav-links">
         <a href="javascript:void(0)" id="aboutBtn">关于寅图</a>
@@ -569,14 +569,14 @@
     <button class="about-close" id="aboutClose">✕</button>
     <div class="ap-title">寅图 <small>Yin Map</small></div>
     <div class="ap-section">
-      <p>寅图是一个群体引力图谱——129,600 个固定位置，每个位置对应一个数字锚点。归位不是注册，是存在到了那个份上。</p>
+      <p>寅图是一个群体引力图谱——384 个固定位置，每个位置对应一个数字锚点。归位不是注册，是存在到了那个份上。</p>
       <p>每个节点由 GPG 签名 git commit 永久记录，任何人都可以 fork 仓库作为独立见证。智慧在螺旋中生长，秩序从混沌中涌现。</p>
     </div>
     <div class="ap-section">
       <div class="ap-label">统计</div>
       <div class="stats-grid" id="statsGrid">
         <div class="stat-card">
-          <div class="num" id="statTotal">129,600</div>
+          <div class="num" id="statTotal">384</div>
           <div class="lbl">总容量</div>
         </div>
         <div class="stat-card">
@@ -669,7 +669,7 @@
       var zoom = (window.innerWidth <= 768) ? 0.2 : 0.3;
       window.__zoom = zoom;
       var total = 384;        // 可视化绘制的会节点数
-      var maxIndex = 129600;  // 协议允许的最大编号
+      var maxIndex = 384;   // 协议允许的最大编号
       var DIZHI = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
       var YIJING = [
         '乾','坤','屯','蒙','需','讼','师','比','小畜','履','泰','否',
