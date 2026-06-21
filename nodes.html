@@ -499,10 +499,10 @@
     <div class="nav-left">
       <div style="display:flex;align-items:center;gap:12px">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="24" height="24" style="display:block;flex-shrink:0">
-          <rect x="4" y="4" width="92" height="92" rx="8" ry="8" fill="none" stroke="#000" stroke-width="4.5"/>
+          <rect x="4" y="4" width="92" height="92" rx="8" ry="8" fill="none" stroke="#fff" stroke-width="4.5"/>
           <text x="50" y="58" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="44" fill="#fff">ZK</text>
-          <line x1="28" y1="74" x2="72" y2="74" stroke="#000" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="28" y1="84" x2="56" y2="84" stroke="#000" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="28" y1="74" x2="72" y2="74" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="28" y1="84" x2="56" y2="84" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
         </svg>
         <span class="query-label">查询</span>
         <div class="query-box">
@@ -1151,20 +1151,6 @@
             ctx.lineWidth = 1;
             ctx.stroke();
 
-            // 名字标签（仅缩放到足够大时显示）
-            if (zoom > 0.5) {
-              ctx.textAlign = 'center';
-              ctx.textBaseline = 'bottom';
-              ctx.font = '11px "Inter", system-ui, sans-serif';
-              ctx.fillStyle = 'rgba(255, 200, 68, 0.8)';
-              ctx.fillText(rn.name, rp.x, rp.y - 8 * rrf);
-
-              // 序号小标
-              ctx.textBaseline = 'top';
-              ctx.font = '10px "Inter", system-ui, sans-serif';
-              ctx.fillStyle = 'rgba(255, 200, 68, 0.4)';
-              ctx.fillText('#' + rn.index, rp.x, rp.y + 8 * rrf);
-            }
           }
 
           // ── 注册节点间连线 ──
