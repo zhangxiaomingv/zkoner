@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="寅图 — 群体引力图谱。129600个固定位置，每个节点 = 一个数字锚点。螺旋可视化、GPG验证。" />
+  <link rel="canonical" href="https://zkoner.com/nodes.html" />
+  <title>节点 — ZKoner</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Ma+Shan+Zheng&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/variables.css" />
+  <link rel="stylesheet" href="assets/css/keyframes.css" />
+  <link rel="stylesheet" href="assets/css/background.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/responsive.css" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0B0E14;
+      overflow-x: hidden;
+      overflow-y: auto;
+      font-family: 'Inter', system-ui, sans-serif;
+      position: relative;
+    }
+    /* ── 深空弥散背景 ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 140% 80% at 50% 100%, #0B0E14 0%, #1A1A2E 70%),
+        radial-gradient(ellipse 80% 50% at 50% 100%, rgba(0,200,255,0.12) 0%, rgba(0,120,255,0.06) 30%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 50% 100%, rgba(100,220,255,0.08) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    #nodeCanvas {
+      position: absolute; inset: 0; z-index: 1;
+      width: 100%; height: 100%;
+      touch-action: none;
+    }
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      height: 48px; padding: 0 16px;
+    }
+    .nav-logo { font-size: 15px; font-weight: 800; letter-spacing: -0.5px; color: #1e40af; flex-shrink: 0; }
+    .nav-left { display: flex; align-items: center; gap: 20px; }
+    .nav-center {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center;
+    }
+    .nav-links { display: flex; gap: 32px; }
+    .nav-subtitle {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      font-size: 11px; color: rgba(255,255,255,0.2);
+      letter-spacing: 1.5px; white-space: nowrap;
+      transition: color 0.3s;
+    }
+    .nav-subtitle:hover {
+      color: rgba(30, 64, 175, 0.8);
+    }
+    .nav-sub-num { font-size: 22px; }
+    .query-box {
+      display: flex; align-items: center;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 8px;
+      padding: 0 10px 0 14px;
+      height: 34px;
+      transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+    }
+    .query-box:hover {
+      border-color: rgba(30, 64, 175, 0.70);
+      background: rgba(30, 64, 175, 0.08);
+      box-shadow: 0 0 16px rgba(30, 64, 175, 0.12), inset 0 0 16px rgba(30, 64, 175, 0.04);
+    }
+    .query-box:focus-within {
+      border-color: rgba(30, 64, 175, 1.0);
+      background: rgba(30, 64, 175, 0.12);
+      box-shadow: 0 0 20px rgba(30, 64, 175, 0.16), inset 0 0 20px rgba(30, 64, 175, 0.06);
+    }
+    .query-box .q-icon {
+      color: rgba(255,255,255,0.4);
+      font-size: 13px;
+      margin-right: 8px;
+      line-height: 1;
+      font-weight: 300;
+    }
+    .query-box:hover .q-icon { color: rgba(255,255,255,0.8); }
+    .query-box:focus-within .q-icon { color: rgba(255,255,255,1.0); }
+    .query-box input {
+      width: 58px; padding: 0; border: none;
+      background: transparent; color: #fff;
+      font-size: 13px; font-family: 'Inter', sans-serif;
+      text-align: center; outline: none;
+      line-height: 1; letter-spacing: 0.3px;
+      font-weight: 400;
+      -moz-appearance: textfield;
+    }
+    .query-box input::-webkit-outer-spin-button,
+    .query-box input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .query-box input::placeholder { color: rgba(255,255,255,0.3); font-weight: 300; letter-spacing: 0; }
+    .query-box .q-sep {
+      width: 1px; height: 16px;
+      background: rgba(255,255,255,0.12);
+      margin: 0 6px;
+    }
+    .query-box .q-go {
+      background: none; border: none; color: rgba(255,255,255,0.3);
+      font-size: 16px; cursor: pointer; padding: 0 2px;
+      line-height: 1; transition: color 0.2s, transform 0.2s;
+      font-family: 'Inter', sans-serif; font-weight: 200;
+    }
+    .query-box .q-go:hover { color: rgba(255,255,255,1.0); transform: translateX(1px); }
+    .query-box:hover .q-go { color: rgba(255,255,255,0.5); }
+    .query-box:focus-within .q-go { color: rgba(255,255,255,0.6); }
+    .query-label {
+      color: rgba(255,255,255,0.5); font-size: 12px; font-weight: 400;
+      letter-spacing: 1px; margin-right: 12px; user-select: none;
+    }
+    .node-info {
+      position: fixed; left: 32px; top: 80px; z-index: 200;
+      padding: 16px 24px;
+      background: rgba(10, 10, 15, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      opacity: 0; transition: opacity 0.25s;
+      pointer-events: none;
+      text-align: left;
+      line-height: 1.6;
+      min-width: 180px;
+    }
+    .node-info.show { opacity: 1; pointer-events: auto; }
+    .node-info .num { font-size: 16px; font-weight: 500; color: rgba(255,255,255,0.5); }
+    .node-info .gpg-status {
+      margin-top: 10px; padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      font-size: 12px; line-height: 1.5;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .node-info .gpg-status .gpg-icon { font-size: 14px; flex-shrink: 0; }
+    .node-info .gpg-status.verified { color: rgba(68, 255, 136, 0.85); }
+    .node-info .gpg-status.declared { color: rgba(255, 200, 68, 0.85); }
+    .node-info .gpg-status.none { color: rgba(255,255,255,0.25); }
+    .node-info .gpg-status .gpg-spinner {
+      display: inline-block; width: 10px; height: 10px;
+      border: 1.5px solid rgba(255,255,255,0.3);
+      border-top-color: rgba(255,255,255,0.8);
+      border-radius: 50%;
+      animation: gpgSpin 0.8s linear infinite;
+    }
+    @keyframes gpgSpin { to { transform: rotate(360deg); } }
+    .query-highlight {
+      position: fixed; pointer-events: none; z-index: 50;
+      border: 1.5px solid rgba(255,255,255,0.6);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      width: 20px; height: 20px;
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .query-highlight.show { opacity: 0.7; }
+
+    /* ── Three.js 覆盖层 ── */
+    #threeCanvas {
+      position: absolute; inset: 0; z-index: 2;
+      width: 100%; height: 100%;
+      opacity: 0; pointer-events: none;
+    }
+    #threeCanvas.show { pointer-events: auto; }
+
+    /* ── Spiral Hero Wrapper ── */
+    .spiral-hero {
+      position: relative;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
+    .hero-scroll-hint {
+      position: absolute; bottom: 32px; left: 0; right: 0; z-index: 20;
+      text-align: center;
+      font-size: 12px;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 1px;
+      pointer-events: none;
+      transition: opacity 0.6s var(--ease-out);
+    }
+    .hero-scroll-hint.hidden { opacity: 0; }
+    .hero-scroll-hint-arrow {
+      width: 16px; height: 16px;
+      margin: 8px auto 0;
+      border-right: 1.5px solid rgba(255,255,255,0.3);
+      border-bottom: 1.5px solid rgba(255,255,255,0.3);
+      transform: rotate(45deg);
+      animation: scrollBounce 3s ease-in-out infinite;
+    }
+
+    .yintu {
+      position: fixed; z-index: 80;
+      font-family: 'Ma Shan Zheng', 'STKaiti', serif;
+      font-size: 96px;
+      line-height: 1.2;
+      color: rgba(255, 68, 68, 0.25);
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      letter-spacing: 4px;
+      pointer-events: none;
+      user-select: none;
+      transform: translate(-50%, -50%);
+    }
+    @media (max-width: 768px) {
+      nav { height: 36px; padding: 0 12px; }
+      .nav-links { display: none; }
+      .nav-subtitle { display: none; }
+      .query-label { display: none; }
+      .query-box { height: 40px; padding: 0 8px 0 12px; }
+      .query-box input { width: 58px; }
+      .query-box .q-go { padding: 6px 8px; }
+      .node-info { left: 12px; top: 60px; padding: 12px 16px; font-size: 12px; right: 12px; border-radius: 8px; }
+      .yintu { font-size: 48px; }
+      .query-highlight { width: 18px; height: 18px; }
+    }
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+  <nav>
+    <div class="nav-left">
+      <div style="display:flex;align-items:center;gap:12px">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="24" height="24" style="display:block;flex-shrink:0">
+          <rect x="4" y="4" width="92" height="92" rx="8" ry="8" fill="none" stroke="#000" stroke-width="4.5"/>
+          <text x="50" y="58" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="44" fill="#fff">ZK</text>
+          <line x1="28" y1="74" x2="72" y2="74" stroke="#000" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="28" y1="84" x2="56" y2="84" stroke="#000" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        <span class="query-label">查询</span>
+        <div class="query-box">
+          <span class="q-icon">○</span>
+          <input id="nodeQuery" type="number" min="1" max="129600" placeholder="输入序号" />
+          <span class="q-sep"></span>
+          <button class="q-go" id="nodeQueryBtn">→</button>
+        </div>
+      </div>
+    </div>
+    <span class="nav-subtitle">每个节点 = 一个数字锚点 · 当前 <span class="nav-sub-num" id="supplyCount">1</span>/129600</span>
+    <div class="nav-right">
+      <div class="nav-links">
+        <a href="index.html">首页</a>
+      </div>
+    </div>
+  </nav>
+  <div class="bg-gradient"></div>
+  <div class="bg-noise"></div>
+  <div class="query-highlight" id="queryHighlight"></div>
+  <div class="node-info" id="nodeInfo"></div>
+  <div class="yintu">寅图</div>
+  <div class="spiral-hero" id="spiralHero">
+    <canvas id="nodeCanvas"></canvas>
+    <canvas id="threeCanvas"></canvas>
+  </div>
+
+  <script>
+    (function() {
+      var canvas = document.getElementById('nodeCanvas');
+      var ctx = canvas.getContext('2d');
+      var W, H, cx, cy, dpr;
+
+      var nodesPerRev = 12;
+      var radiusStep = 28;
+      var baseR = 40;
+      var zoom = (window.innerWidth <= 768) ? 0.2 : 0.3;
+      window.__zoom = zoom;
+      var total = 384;        // 可视化绘制的会节点数
+      var maxIndex = 129600;  // 协议允许的最大编号
+      var DIZHI = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+      var YIJING = [
+        '乾','坤','屯','蒙','需','讼','师','比','小畜','履','泰','否',
+        '同人','大有','谦','豫','随','蛊','临','观','噬嗑','贲','剥','复',
+        '无妄','大畜','颐','大过','坎','离','咸','恒','遁','大壮','晋','明夷',
+        '家人','睽','蹇','解','损','益','夬','姤','萃','升','困','井',
+        '革','鼎','震','艮','渐','归妹','丰','旅','巽','兑','涣','节'
+      ];
+      var triBase = 108;
+      var triMax = 348;
+      var pulsePhase = 0;
+      var pulseStart = performance.now();
+      var offsetX = 0, offsetY = 0;
+      var dragStartX, dragStartY, isDragging = false;
+      var snapAnim = null;
+      // 球面点数据（129,600 点 Fibonacci 分布，嵌入正方形内）
+      var spherePts3D = (function() {
+        var pts = [], N = 5408;
+        for (var i = 0; i < N; i++) {
+          var y = 1 - (i / (N - 1)) * 2;
+          var r = Math.sqrt(1 - y * y);
+          var theta = Math.PI * (3 - Math.sqrt(5)) * i;
+          pts.push({ x: r * Math.cos(theta), y: y, z: r * Math.sin(theta) });
+        }
+        return pts;
+      })();
+      var sphereRotY = 0;
+
+      function resize() {
+        dpr = window.devicePixelRatio || 1;
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = W * dpr;
+        canvas.height = H * dpr;
+        canvas.style.width = W + 'px';
+        canvas.style.height = H + 'px';
+        ctx.scale(dpr, dpr);
+        cx = W / 2;
+        cy = H / 2;
+        draw();
+      }
+
+      // 连续螺旋位置（t 从 0 ~ numRevs * nodesPerRev，子位在右下）
+      function spiralPos(t) {
+        var angle = 2 * Math.PI * t / nodesPerRev + Math.PI / 3;
+        var radius = (baseR + t / nodesPerRev * radiusStep) * zoom;
+        return { x: cx + radius * Math.cos(angle) + offsetX, y: cy + radius * Math.sin(angle) + offsetY };
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        var textAlpha = Math.max(0, Math.min(1, (zoom - 0.8) / 0.2));
+
+        // ── 螺旋线（从圆心平滑引出） ──
+        var tStart = -(baseR * nodesPerRev) / radiusStep;
+        ctx.save();
+        // 发光底层
+        ctx.shadowColor = 'rgba(255,255,255,0.06)';
+        ctx.shadowBlur = 4;
+
+        // 实线部分：tStart → 359（前360个节点）
+        ctx.beginPath();
+        var solidEnd = 359;
+        var steps1 = (solidEnd - tStart) * 6;
+        for (var i = 0; i <= steps1; i++) {
+          var t = tStart + (i / steps1) * (solidEnd - tStart);
+          var p = spiralPos(t);
+          if (i === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        }
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.17)';
+        ctx.lineWidth = 0.7;
+        ctx.stroke();
+
+        // 虚线部分：359 → 383（360→384的螺旋线条，以虚线表无常）
+        ctx.beginPath();
+        ctx.setLineDash([4.75, 4.75]);
+        var dashEnd = total - 1;
+        var steps2 = (dashEnd - solidEnd) * 6;
+        for (var i = 0; i <= steps2; i++) {
+          var t = solidEnd + (i / steps2) * (dashEnd - solidEnd);
+          var p = spiralPos(t);
+          if (i === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        }
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.48)';
+        ctx.lineWidth = 0.7;
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.shadowBlur = 0;
+        ctx.restore();
+
+        // ── 7 的路径（7,14,21...378 → 385 子位，虚线示未济） ──
+        var path7Alpha = Math.max(0, Math.min(1, (1 - zoom) / 0.2));
+        if (path7Alpha > 0.01) {
+          ctx.save();
+
+          // 实线：7 → 378
+          ctx.beginPath();
+          for (var si = 7; si <= total; si += 7) {
+            var sp = spiralPos(si - 1);
+            if (si === 7) ctx.moveTo(sp.x, sp.y);
+            else ctx.lineTo(sp.x, sp.y);
+          }
+          ctx.strokeStyle = 'rgba(255, 255, 255, ' + (0.57 * path7Alpha).toFixed(3) + ')';
+          ctx.lineWidth = 0.6;
+          ctx.stroke();
+
+          // 378 → 385（子位）
+          var last7 = 378;
+          var next7 = 385;
+          ctx.beginPath();
+          var pLast = spiralPos(last7 - 1);
+          var pNext = spiralPos(next7 - 1);
+          ctx.moveTo(pLast.x, pLast.y);
+          ctx.lineTo(pNext.x, pNext.y);
+          ctx.strokeStyle = 'rgba(255, 255, 255, ' + (0.57 * path7Alpha).toFixed(3) + ')';
+          ctx.lineWidth = 0.6;
+          ctx.stroke();
+
+          // 385 位置标「子」
+          if (textAlpha > 0.01) {
+            ctx.fillStyle = 'rgba(255, 255, 255, ' + (0.6 * path7Alpha).toFixed(3) + ')';
+            ctx.font = Math.max(13, Math.min(18, baseR * 0.09)) + 'px "Inter", system-ui, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            var dx385 = pNext.x - cx, dy385 = pNext.y - cy;
+            var dist385 = Math.sqrt(dx385 * dx385 + dy385 * dy385) || 1;
+            var off385 = 14;
+            ctx.fillText('子', pNext.x + (dy385 / dist385) * off385, pNext.y - (dx385 / dist385) * off385);
+          }
+
+          ctx.restore();
+        }
+
+        // ── 64 的倍数路径（64,128,192,256,320,384，未济色，与卦名同频） ──
+        if (textAlpha > 0.01) {
+          ctx.save();
+          ctx.beginPath();
+          for (var si = 64; si <= total; si += 64) {
+            var sp = spiralPos(si - 1);
+            if (si === 64) ctx.moveTo(sp.x, sp.y);
+            else ctx.lineTo(sp.x, sp.y);
+          }
+          ctx.strokeStyle = 'rgba(255, 255, 255, ' + (0.85 * textAlpha).toFixed(3) + ')';
+          ctx.lineWidth = 0.8;
+          ctx.setLineDash([]);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // ── 巳亥流星（自下而上，3s 周期） ──
+        ctx.save();
+        var siAngle = Math.PI / 3 + 5 * Math.PI / 6;
+        function edgeX(angle) {
+          var dx = Math.cos(angle), dy = Math.sin(angle);
+          var tx = dx > 0 ? (W - cx) / dx : dx < 0 ? -cx / dx : Infinity;
+          var ty = dy > 0 ? (H - cy) / dy : dy < 0 ? -cy / dy : Infinity;
+          var t = Math.min(tx, ty);
+          return { x: cx + dx * t, y: cy + dy * t };
+        }
+        var e1 = edgeX(siAngle);
+        var e2 = edgeX(siAngle + Math.PI);
+
+        // 基底淡线
+        ctx.beginPath();
+        ctx.moveTo(e1.x, e1.y);
+        ctx.lineTo(e2.x, e2.y);
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+
+        // 流星位置（自下而上：e1 → e2）
+        var meteorT = pulsePhase;
+        var mx = e1.x + (e2.x - e1.x) * meteorT;
+        var my = e1.y + (e2.y - e1.y) * meteorT;
+
+        // 流星尾迹
+        var trailLen = 0.12;
+        for (var tt = 0.005; tt < trailLen; tt += 0.005) {
+          var trailPos = meteorT - tt;
+          if (trailPos < 0) break;
+          var tx = e1.x + (e2.x - e1.x) * trailPos;
+          var ty = e1.y + (e2.y - e1.y) * trailPos;
+          var alpha = (1 - tt / trailLen) * 0.5;
+          var r = (1 - tt / trailLen) * 2.5;
+          ctx.beginPath();
+          ctx.arc(tx, ty, r, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255,255,255,' + alpha.toFixed(3) + ')';
+          ctx.fill();
+        }
+
+        // 流星头部光晕
+        var glow = ctx.createRadialGradient(mx, my, 0, mx, my, 12);
+        glow.addColorStop(0, 'rgba(255,255,255,0.7)');
+        glow.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(mx, my, 12, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 流星头
+        ctx.beginPath();
+        ctx.arc(mx, my, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.restore();
+
+        // ── 十二地支六组对穿线（巳亥已有，补子午/丑未/寅申/卯酉/辰戌） ──
+        ctx.save();
+        var duiPairs = [
+          Math.PI / 3,      // 子 → 午
+          Math.PI / 2,      // 丑 → 未
+          2 * Math.PI / 3,  // 寅 → 申
+          5 * Math.PI / 6,  // 卯 → 酉
+          Math.PI,          // 辰 → 戌
+          7 * Math.PI / 6   // 巳 → 亥
+        ];
+        for (var pi = 0; pi < duiPairs.length; pi++) {
+          var pa = duiPairs[pi];
+          var p1 = edgeX(pa);
+          var p2 = edgeX(pa + Math.PI);
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+          ctx.lineWidth = 0.4;
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // ── 正三角形（隔4成形，动态外跳，RGB三色，与7路径同频） ──
+        var triOff = [4, 8, 12];
+        var triColors = ['#C71585', '#00FA9A', '#9370D8'];
+        if (path7Alpha > 0.01) {
+        ctx.save();
+        ctx.globalAlpha = path7Alpha;
+        for (var ti = 0; ti < 3; ti++) {
+          var p1 = spiralPos(triBase + triOff[ti] - 1);
+          var p2 = spiralPos(triBase + triOff[(ti + 1) % 3] - 1);
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.shadowColor = triColors[ti] + '44';
+          ctx.shadowBlur = 6;
+          ctx.strokeStyle = triColors[ti];
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+        for (var ti = 0; ti < 3; ti++) {
+          var tp = spiralPos(triBase + triOff[ti] - 1);
+          ctx.beginPath();
+          ctx.arc(tp.x, tp.y, 3, 0, Math.PI * 2);
+          ctx.fillStyle = triColors[ti];
+          ctx.fill();
+        }
+        ctx.restore();
+        }
+
+        // ── 3-6-9-12 正正方形（统一半径，30° 旋转） ──
+        ctx.save();
+        var sqR = (baseR + 6.5 / nodesPerRev * radiusStep) * zoom;
+        var sqBase = Math.PI / 6;
+        var sqPts = [
+          { x: cx + offsetX + sqR * Math.cos(sqBase), y: cy + offsetY + sqR * Math.sin(sqBase) },
+          { x: cx + offsetX + sqR * Math.cos(sqBase + Math.PI / 2), y: cy + offsetY + sqR * Math.sin(sqBase + Math.PI / 2) },
+          { x: cx + offsetX + sqR * Math.cos(sqBase + Math.PI), y: cy + offsetY + sqR * Math.sin(sqBase + Math.PI) },
+          { x: cx + offsetX + sqR * Math.cos(sqBase + 3 * Math.PI / 2), y: cy + offsetY + sqR * Math.sin(sqBase + 3 * Math.PI / 2) }
+        ];
+        var sqAlpha = (0.2 + Math.sin(pulsePhase * Math.PI) * 0.5) * textAlpha;
+        ctx.beginPath();
+        ctx.moveTo(sqPts[0].x, sqPts[0].y);
+        for (var si = 1; si < sqPts.length; si++) {
+          ctx.lineTo(sqPts[si].x, sqPts[si].y);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = 'rgba(255,255,255,' + sqAlpha.toFixed(3) + ')';
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+        // 拖动时显示12地支（逆时针，子对乾丑对坤，寅巳申亥居四角）
+        if ((isDragging || offsetX !== 0 || offsetY !== 0) && textAlpha > 0.01) {
+          var DIZHI_ON_SQ = ['亥','子','丑','寅','卯','辰','巳','午','未','申','酉','戌'];
+          var cw = [sqPts[0], sqPts[1], sqPts[2], sqPts[3]]; // 逆时针：右下→左下→左上→右上
+          var sqFs = Math.max(13, Math.min(18, baseR * 0.09));
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.font = sqFs + 'px "Inter", system-ui, sans-serif';
+          for (var li = 0; li < 12; li++) {
+            var mod = li % 3;
+            if (mod === 0) {
+              var lx = cw[Math.floor(li / 3)].x;
+              var ly = cw[Math.floor(li / 3)].y;
+            } else {
+              var sIdx = Math.floor(li / 3);
+              var p1 = cw[sIdx], p2 = cw[(sIdx + 1) % 4];
+              var t = mod / 3;
+              var lx = p1.x + (p2.x - p1.x) * t;
+              var ly = p1.y + (p2.y - p1.y) * t;
+            }
+            ctx.fillStyle = 'rgba(255, 255, 255, ' + (0.85 * textAlpha).toFixed(3) + ')';
+            ctx.fillText(DIZHI_ON_SQ[li], lx, ly);
+          }
+        }
+        ctx.restore();
+
+        // ── 中心元素（十二万九千六百、球体） ──
+        var centerAlpha = Math.max(0, Math.min(1, (zoom - 0.4) / 0.2));
+
+        // ── 中心球体（内切于正方形，5408 点） ──
+        if (centerAlpha > 0.01 && sqR > 8) {
+          ctx.save();
+          var sR = sqR * 0.7071;
+          var cY = Math.cos(sphereRotY), sY = Math.sin(sphereRotY);
+          for (var si = 0; si < spherePts3D.length; si++) {
+            var sp = spherePts3D[si];
+            var rx = sp.x * cY + sp.z * sY;
+            var rz = -sp.x * sY + sp.z * cY;
+            if (rz < -0.95) continue;
+            var px = cx + offsetX + rx * sR;
+            var py = cy + offsetY - sp.y * sR;
+            var depth = (rz + 1) * 0.5;
+            var al = (0.15 + depth * 0.5) * centerAlpha;
+            var latPos = (sp.y + 1) * 0.5;
+            var br = Math.round(255 * latPos);
+            var bg = Math.round(255 * (1 - Math.abs(latPos * 2 - 1)));
+            var bb = Math.round(255 * (1 - latPos));
+            ctx.fillStyle = 'rgba(' + br + ',' + bg + ',' + bb + ',' + al.toFixed(3) + ')';
+            ctx.fillRect(px - 0.4, py - 0.4, 0.8, 0.8);
+          }
+          ctx.restore();
+        }
+
+        // ── 中心文字螺旋（十二万九千六百，沿正方形内螺旋排列） ──
+        if (centerAlpha > 0.01 && sqR > 8) {
+          ctx.save();
+          var chars = ['十','二','万','九','千','六','百'];
+          for (var ci = 0; ci < 7; ci++) {
+            var ang = Math.PI / 3 + ci * Math.PI * 2 / 7;
+            var rad = (baseR * zoom) * 0.7;
+            var px = cx + offsetX + rad * Math.cos(ang);
+            var py = cy + offsetY + rad * Math.sin(ang);
+            ctx.font = 'bold 12px SimSun, "STSong", serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx.fillText(chars[ci], px, py);
+          }
+          ctx.restore();
+        }
+
+        // ── 节点 + 汉字 + 数字 ──
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (var i = 0; i < total; i++) {
+          var n = spiralPos(i);
+          var rFactor = 1 + Math.sqrt(i / total);
+
+
+
+          // 数字（站右侧，缩小时渐隐）
+          if (textAlpha > 0.01) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(255,255,255,' + (0.4 * textAlpha).toFixed(3) + ')';
+            var numSize = Math.max(13, Math.min(18, baseR * 0.09));
+            ctx.font = numSize + 'px "Inter", sans-serif';
+            var dx = n.x - cx, dy = n.y - cy;
+            var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+            var off = 14;
+            // 右垂向 = (dy/dist, -dx/dist)
+            ctx.fillText((i + 1).toString(), n.x + (dy / dist) * off, n.y - (dx / dist) * off);
+            ctx.restore();
+          }
+
+          // 配易经卦名（60卦循环，站左侧，缩小时渐隐）
+          if (textAlpha > 0.01) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(255, 220, 180, ' + (0.9 * textAlpha).toFixed(3) + ')';
+            var fs = Math.max(13, Math.min(18, baseR * 0.09));
+            ctx.font = fs + 'px "Inter", system-ui, sans-serif';
+            var dx2 = n.x - cx, dy2 = n.y - cy;
+            var dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2) || 1;
+            // 左垂向 = (-dy/dist, dx/dist)
+            ctx.fillText(YIJING[i % 60], n.x - (dy2 / dist2) * off, n.y + (dx2 / dist2) * off);
+            ctx.restore();
+          }
+
+          // 节点64 特殊标注：《未济》于蒙对侧（右侧）
+          if (i === 63 && textAlpha > 0.01) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(255, 180, 100, ' + (0.9 * textAlpha).toFixed(3) + ')';
+            var fsW = Math.max(13, Math.min(18, baseR * 0.09));
+            ctx.font = fsW + 'px "Inter", system-ui, sans-serif';
+            var dxW = n.x - cx, dyW = n.y - cy;
+            var distW = Math.sqrt(dxW * dxW + dyW * dyW) || 1;
+            var offW = 28;
+            ctx.fillText('未济', n.x + (dyW / distW) * offW, n.y - (dxW / distW) * offW);
+            ctx.restore();
+          }
+        }
+
+        // ── 特殊节点蓝色高亮（4, 60, 64, 360, 384），与卦名同频 ──
+        if (textAlpha > 0.01) {
+        var highlights = [3, 59, 63, 359, 383];
+        for (var hi = 0; hi < highlights.length; hi++) {
+          var hiIdx = highlights[hi];
+          var hn = spiralPos(hiIdx);
+          var hrf = 1 + Math.sqrt(hiIdx / total);
+          ctx.save();
+          ctx.globalAlpha = textAlpha;
+          var glow = ctx.createRadialGradient(hn.x, hn.y, 0, hn.x, hn.y, 5 * hrf);
+          glow.addColorStop(0, 'rgba(68, 136, 255, 0.35)');
+          glow.addColorStop(1, 'rgba(68, 136, 255, 0)');
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(hn.x, hn.y, 5 * hrf, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(hn.x, hn.y, 1.0 * hrf + 1, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(68, 170, 255, 0.48)';
+          ctx.fill();
+          ctx.restore();
+        }
+        }
+
+        // ── 缩至最小时显示12地支方位（顺时针，亥起，巳亥对穿） ──
+        var dMinAlpha = Math.max(0, Math.min(1, (0.3 - zoom) / 0.08));
+        if (dMinAlpha > 0.01) {
+          ctx.save();
+          var DIZHI_CW = ['亥','戌','酉','申','未','午','巳','辰','卯','寅','丑','子'];
+          var dR = Math.min(W, H) * 0.4;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          var dFs = Math.max(14, Math.min(22, dR * 0.07));
+          ctx.font = dFs + 'px "Inter", system-ui, sans-serif';
+          ctx.fillStyle = 'rgba(255, 255, 255, ' + (0.8 * dMinAlpha).toFixed(3) + ')';
+          for (var di = 0; di < 12; di++) {
+            var ang = Math.PI / 6 - di * Math.PI / 6;
+            var dx = cx + offsetX + dR * Math.cos(ang);
+            var dy = cy + offsetY + dR * Math.sin(ang);
+            ctx.fillText(DIZHI_CW[di], dx, dy);
+          }
+          ctx.restore();
+        }
+
+      }
+
+      window.addEventListener('resize', function() { resize(); });
+      canvas.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        zoom *= e.deltaY < 0 ? 1.1 : 0.9;
+        zoom = Math.max(0.2, Math.min(5, zoom));
+        window.__zoom = zoom;
+        draw();
+      }, { passive: false });
+
+      // ── 拖拽平移 ──
+      canvas.addEventListener('mousedown', function(e) {
+        isDragging = true;
+        dragStartX = e.clientX - offsetX;
+        dragStartY = e.clientY - offsetY;
+        if (snapAnim) { cancelAnimationFrame(snapAnim); snapAnim = null; }
+      });
+      window.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        offsetX = e.clientX - dragStartX;
+        offsetY = e.clientY - dragStartY;
+        draw();
+      });
+      window.addEventListener('mouseup', function() {
+        if (!isDragging) return;
+        isDragging = false;
+        // 平滑复位
+        var startX = offsetX, startY = offsetY;
+        var startTime = performance.now();
+        function snapBack(time) {
+          var t = Math.min((time - startTime) / 400, 1);
+          var ease = 1 - Math.pow(1 - t, 3);
+          offsetX = startX * (1 - ease);
+          offsetY = startY * (1 - ease);
+          draw();
+          if (t < 1) snapAnim = requestAnimationFrame(snapBack);
+          else snapAnim = null;
+        }
+        snapAnim = requestAnimationFrame(snapBack);
+      });
+      // 触摸支持 — 单指拖拽 + 双指缩放
+      var touchId = null, pinchDist0 = 0, pinchZoom0 = zoom;
+      canvas.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 2) {
+          // 双指缩放
+          isDragging = false;
+          var dx = e.touches[0].clientX - e.touches[1].clientX;
+          var dy = e.touches[0].clientY - e.touches[1].clientY;
+          pinchDist0 = Math.sqrt(dx * dx + dy * dy);
+          pinchZoom0 = zoom;
+          if (snapAnim) { cancelAnimationFrame(snapAnim); snapAnim = null; }
+        } else {
+          var t = e.changedTouches[0];
+          touchId = t.identifier;
+          isDragging = true;
+          dragStartX = t.clientX - offsetX;
+          dragStartY = t.clientY - offsetY;
+          if (snapAnim) { cancelAnimationFrame(snapAnim); snapAnim = null; }
+        }
+      }, { passive: true });
+      canvas.addEventListener('touchmove', function(e) {
+        if (e.touches.length === 2 && pinchDist0 > 0) {
+          // 双指缩放
+          var dx = e.touches[0].clientX - e.touches[1].clientX;
+          var dy = e.touches[0].clientY - e.touches[1].clientY;
+          var dist = Math.sqrt(dx * dx + dy * dy);
+          zoom = Math.max(0.2, Math.min(5, pinchZoom0 * (dist / pinchDist0)));
+          window.__zoom = zoom;
+          draw();
+          return;
+        }
+        if (!isDragging) return;
+        for (var i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === touchId) {
+            offsetX = e.changedTouches[i].clientX - dragStartX;
+            offsetY = e.changedTouches[i].clientY - dragStartY;
+            draw();
+            break;
+          }
+        }
+      }, { passive: true });
+      canvas.addEventListener('touchend', function(e) {
+        pinchDist0 = 0;
+        if (!isDragging) return;
+        isDragging = false;
+        touchId = null;
+        var startX = offsetX, startY = offsetY;
+        var startTime = performance.now();
+        function snapBack(time) {
+          var t = Math.min((time - startTime) / 400, 1);
+          var ease = 1 - Math.pow(1 - t, 3);
+          offsetX = startX * (1 - ease);
+          offsetY = startY * (1 - ease);
+          draw();
+          if (t < 1) snapAnim = requestAnimationFrame(snapBack);
+          else snapAnim = null;
+        }
+        snapAnim = requestAnimationFrame(snapBack);
+      }, { passive: true });
+      resize();
+
+      // ── 加载节点数据 ──
+      var nodeData = {};
+      // 优先从 registry/INDEX 加载（轻量，生成速度快）
+      fetch('./registry/INDEX').then(function(r){return r.text()}).then(function(text){
+        var lines = text.trim().split('\n').filter(Boolean);
+        lines.forEach(function(line) {
+          var parts = line.split(' ');
+          var idx = parseInt(parts[0], 10);
+          if (!isNaN(idx)) {
+            nodeData[idx] = {
+              index: idx,
+              name: parts[2] || '?',
+              url: parts[3] || '',
+              gpgKey: parts[4] !== '-' ? parts[4] : undefined,
+              since: parts[5] || ''
+            };
+          }
+        });
+        var sc = document.getElementById('supplyCount');
+        if (sc) sc.textContent = Object.keys(nodeData).length;
+      }).catch(function(){
+        // 降级：尝试旧 tu.json
+        fetch('./tu.json').then(function(r){return r.json()}).then(function(d){
+          if (d && d.supply) {
+            var sc = document.getElementById('supplyCount');
+            if (sc) sc.textContent = d.supply;
+          }
+        }).catch(function(){});
+      });
+
+      setInterval(function() {
+        triBase += 1;
+        if (triBase > triMax) triBase = 0;
+        pulseStart = performance.now();
+      }, 3000);
+
+      (function renderLoop(time) {
+        zoom = window.__zoom || zoom;
+        pulsePhase = Math.min(((time || 0) - pulseStart) / 3000, 1);
+        sphereRotY += 0.035;
+        draw();
+        // 2D→3D 过渡
+        var transit3D = Math.max(0, Math.min(1, (zoom - 3.5) / 1.5));
+        document.getElementById('nodeCanvas').style.opacity = 1 - transit3D;
+        var threeEl = document.getElementById('threeCanvas');
+        threeEl.style.opacity = transit3D;
+        if (transit3D > 0.01) threeEl.classList.add('show');
+        else threeEl.classList.remove('show');
+        if (yintuEl) {
+          var yAlpha = Math.max(0, Math.min(1, 1 - Math.max(0, zoom - 0.3) / 0.02));
+          yintuEl.style.opacity = yAlpha.toFixed(3);
+        }
+        requestAnimationFrame(renderLoop);
+      })();
+
+      var yintuEl = document.querySelector('.yintu');
+      // 首次手动更新
+      if (yintuEl) {
+        var y359 = spiralPos(358);
+        yintuEl.style.left = (y359.x + 112) + 'px';
+        yintuEl.style.top = y359.y + 'px';
+        yintuEl.style.opacity = '1';
+      }
+
+      // ── GPG 签名验证（GitHub API） ──
+      function extractGitHubRepo(nodeUrl, githubField) {
+        // 优先用 tu.json 直接声明的 github 字段
+        if (githubField && githubField.trim()) {
+          return githubField.trim();
+        }
+        // 从 URL 提取 github.com/{owner}/{repo}
+        var m = nodeUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+        if (m) return m[1] + '/' + m[2];
+        // *.github.io → {owner}/{owner}.github.io
+        m = nodeUrl.match(/https?:\/\/([^\.]+)\.github\.io/);
+        if (m) return m[1] + '/' + m[1] + '.github.io';
+        return null;
+      }
+
+      function checkGPGVerification(nodeUrl, gpgKey, githubField) {
+        var repo = extractGitHubRepo(nodeUrl, githubField);
+        if (!repo) {
+          return Promise.resolve({
+            status: 'declared',
+            text: gpgKey.substring(0, 16) + '... — 未关联 GitHub 仓库'
+          });
+        }
+        return fetch('https://api.github.com/repos/' + repo + '/commits?per_page=5')
+          .then(function(r) {
+            if (!r.ok) throw new Error('GitHub API ' + r.status);
+            return r.json();
+          })
+          .then(function(commits) {
+            var gpgNorm = gpgKey.replace(/\s/g, '').toUpperCase();
+            var verifiedCommit = null;
+            var signedButUnknown = null;  // commit 已签名但 GitHub 无公钥
+            for (var i = 0; i < commits.length; i++) {
+              var v = commits[i].commit && commits[i].commit.verification;
+              if (!v) continue;
+              if (v.verified) {
+                var payload = (v.payload || '').replace(/\s/g, '').toUpperCase();
+                if (!payload || payload.length < 8) {
+                  verifiedCommit = commits[i]; break;
+                }
+                if (gpgNorm.indexOf(payload) >= 0 || payload.indexOf(gpgNorm.substring(gpgNorm.length - 16)) >= 0) {
+                  verifiedCommit = commits[i]; break;
+                }
+              } else if (v.reason === 'unknown_key' && !signedButUnknown) {
+                // commit 已 GPG 签名，但公钥未上传到 GitHub
+                signedButUnknown = commits[i];
+              }
+            }
+            if (verifiedCommit) {
+              return {
+                status: 'verified',
+                text: gpgKey.substring(0, 16) + '... → GitHub ✅ 已验证',
+                repo: repo,
+                sha: verifiedCommit.sha ? verifiedCommit.sha.substring(0, 7) : '?'
+              };
+            }
+            if (signedButUnknown) {
+              return {
+                status: 'unknown_key',
+                text: gpgKey.substring(0, 16) + '... → GitHub ⚠ 公钥未上传',
+                repo: repo,
+                hint: '请将 GPG 公钥上传到 GitHub Settings → SSH and GPG keys'
+              };
+            }
+            return {
+              status: 'declared',
+              text: gpgKey.substring(0, 16) + '... → GitHub ⚠ 未找到签名 commit',
+              repo: repo
+            };
+          })
+          .catch(function(e) {
+            return {
+              status: 'declared',
+              text: gpgKey.substring(0, 16) + '... — API 检查失败',
+              error: e.message
+            };
+          });
+      }
+
+      // ── 节点查询 ──
+      var highlightEl = document.getElementById('queryHighlight');
+      var infoEl = document.getElementById('nodeInfo');
+      var queryInput = document.getElementById('nodeQuery');
+      var queryBtn = document.getElementById('nodeQueryBtn');
+      function doQuery() {
+        var val = parseInt(queryInput.value, 10);
+        if (isNaN(val) || val < 1 || val > maxIndex) {
+          highlightEl.classList.remove('show');
+          infoEl.classList.remove('show');
+          return;
+        }
+        var n = spiralPos(val - 1);
+        highlightEl.style.left = n.x + 'px';
+        highlightEl.style.top = n.y + 'px';
+        highlightEl.classList.add('show');
+
+        var rev = Math.floor((val - 1) / 12);
+        var pos = (val - 1) % 12;
+        var dizhiIdx = pos % 12;
+        var nd = nodeData[val];
+        if (nd) {
+          var html =
+            '<div style="font-size:15px;font-weight:600;margin-bottom:4px">' + nd.name + '</div>' +
+            '<div class="num">' + DIZHI[dizhiIdx] + ' / ' + val + '</div>' +
+            (nd.url ? '<div style="margin-top:4px"><a href="' + nd.url + '" target="_blank" style="color:rgba(30,150,255,0.7);font-size:12px;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color=\'rgba(30,150,255,1)\'" onmouseout="this.style.color=\'rgba(30,150,255,0.7)\'">' + nd.url + '</a></div>' : '');
+          if (nd.gpgKey) {
+            html += '<div class="gpg-status declared" id="gpgStatus"><span class="gpg-spinner"></span> 检查 GPG 签名...</div>';
+          } else {
+            html += '<div class="gpg-status none"><span class="gpg-icon">○</span> 未声明 GPG 密钥</div>';
+          }
+          infoEl.innerHTML = html;
+          infoEl.classList.add('show');
+
+          // 异步检查 GPG
+          if (nd.gpgKey) {
+            checkGPGVerification(nd.url, nd.gpgKey, nd.github).then(function(result) {
+              var gpgEl = document.getElementById('gpgStatus');
+              if (!gpgEl) return;
+              gpgEl.className = 'gpg-status ' + (result.status === 'unknown_key' ? 'declared' : result.status);
+              var icon = result.status === 'verified' ? '🔒' : result.status === 'unknown_key' ? '🔑' : '⚠️';
+              var info = result.text;
+              if (result.repo) {
+                info += ' <span style="font-size:10px;opacity:0.6">(' + result.repo + ')</span>';
+              }
+              if (result.hint) {
+                info += '<br><span style="font-size:11px;opacity:0.65">' + result.hint + '</span>';
+              }
+              gpgEl.innerHTML = '<span class="gpg-icon">' + icon + '</span> ' + info;
+            });
+          }
+        } else {
+          infoEl.innerHTML =
+            '<div class="num" style="color:rgba(255,255,255,0.3);font-weight:400;font-size:14px">' + DIZHI[dizhiIdx] + ' / ' + val + '</div>' +
+            '<div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px">序号待领</div>';
+        }
+        infoEl.classList.add('show');
+      }
+
+      queryBtn.addEventListener('click', doQuery);
+      queryInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') doQuery();
+      });
+    })();
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    var canvas = document.getElementById('threeCanvas');
+    var renderer = new THREE.WebGLRenderer({
+      canvas: canvas, antialias: true, alpha: true
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x0a0a0f, 0);
+
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 10000);
+    camera.position.set(0, 400, 400);
+
+    var controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 0, 0);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.enableZoom = false;
+    controls.enablePan = false;
+    controls.minPolarAngle = 0;
+    controls.maxPolarAngle = Math.PI;
+    controls.update();
+
+    // 滚轮同步到 2D zoom
+    canvas.addEventListener('wheel', function(e) {
+      e.preventDefault();
+      var z = window.__zoom || 0.3;
+      z *= e.deltaY > 0 ? 0.92 : 1.08;
+      z = Math.max(0.2, Math.min(5.0, z));
+      window.__zoom = z;
+    }, { passive: false });
+
+    // ── 5408 点云 ──
+    var pos = [], col = [], N = 5408;
+    for (var i = 0; i < N; i++) {
+      var y = 1 - (i / (N - 1)) * 2;
+      var r = Math.sqrt(1 - y * y);
+      var theta = Math.PI * (3 - Math.sqrt(5)) * i;
+      pos.push(r * Math.cos(theta) * 300, y * 300, r * Math.sin(theta) * 300);
+      var latPos = (y + 1) * 0.5;
+      col.push(latPos, 1 - Math.abs(latPos * 2 - 1), 1 - latPos);
+    }
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+    // 圆形点纹理
+    var dotCanvas = document.createElement('canvas');
+    dotCanvas.width = 32; dotCanvas.height = 32;
+    var dotCtx = dotCanvas.getContext('2d');
+    var dotGrad = dotCtx.createRadialGradient(16, 16, 0, 16, 16, 16);
+    dotGrad.addColorStop(0, 'rgba(255,255,255,1)');
+    dotGrad.addColorStop(0.3, 'rgba(255,255,255,0.8)');
+    dotGrad.addColorStop(1, 'rgba(255,255,255,0)');
+    dotCtx.fillStyle = dotGrad;
+    dotCtx.fillRect(0, 0, 32, 32);
+    var dotTexture = new THREE.CanvasTexture(dotCanvas);
+
+    var mat = new THREE.PointsMaterial({
+      size: 8, vertexColors: true, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
+      map: dotTexture
+    });
+    var points = new THREE.Points(geo, mat);
+    points.renderOrder = 0;
+    scene.add(points);
+
+    // ── 12 地支 ──
+    var DIZHI = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+    var sprites = [];
+    for (var di = 0; di < 12; di++) {
+      var c = document.createElement('canvas');
+      c.width = 128; c.height = 128;
+      var cx = c.getContext('2d');
+      cx.fillStyle = 'rgba(255,200,100,0.7)';
+      cx.font = 'bold 56px system-ui,sans-serif';
+      cx.textAlign = 'center'; cx.textBaseline = 'middle';
+      cx.fillText(DIZHI[di], 64, 64);
+      var tex = new THREE.CanvasTexture(c);
+      var smat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, opacity: 0, depthTest: false });
+      var spr = new THREE.Sprite(smat);
+      var ang = Math.PI / 6 - di * Math.PI / 6;
+      spr.position.set(350 * Math.cos(ang), 0, 350 * Math.sin(ang));
+      spr.scale.set(80, 80, 1);
+      spr.renderOrder = 1;
+      scene.add(spr);
+      sprites.push(spr);
+    }
+
+    // ── 中心光晕 ──
+    var glowGeo = new THREE.SphereGeometry(6, 16, 16);
+    var glowMat = new THREE.MeshBasicMaterial({ color: 0xffaa44, transparent: true, opacity: 0 });
+    var glow = new THREE.Mesh(glowGeo, glowMat);
+    scene.add(glow);
+
+    // ── 窗口大小 ──
+    window.addEventListener('resize', function() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // ── 动画循环 ──
+    function animate(time) {
+      requestAnimationFrame(animate);
+      var zoom = window.__zoom || 0.3;
+      var t = Math.max(0, Math.min(1, (zoom - 3.5) / 1.5));
+
+      // 相机从球外到球心
+      camera.position.lerp(new THREE.Vector3(0, 400 * (1 - t), 400 * (1 - t)), 0.08);
+      controls.update();
+
+      // 透明度
+      points.material.opacity = t;
+      for (var si = 0; si < sprites.length; si++) sprites[si].material.opacity = t * 0.7;
+      glow.material.opacity = t * 0.3;
+
+      // 自动旋转（非 3D 模式时缓慢自转）
+      if (t < 0.5) {
+        var rotSpeed = 0.002;
+        points.rotation.y += rotSpeed;
+      } else {
+        points.rotation.y += 0.005;
+      }
+
+      // 呼吸
+      var breathe = 0.5 + 0.5 * Math.sin(time * 0.001);
+      glow.scale.setScalar(1 + breathe * 0.3);
+
+      renderer.render(scene, camera);
+    }
+    animate(0);
+  </script>
+  <script type="module">
+    import { initReveal } from './assets/js/reveal.js';
+    initReveal();
+  </script>
+  <script>
+    // Scroll-hint fade on scroll
+    (function() {
+      var hint = document.getElementById('heroScrollHint');
+      if (!hint) return;
+      var onScroll = function() {
+        if (window.scrollY > 20) hint.classList.add('hidden');
+        else hint.classList.remove('hidden');
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+    })();
+
+  </script>
+
+</body>
+</html>

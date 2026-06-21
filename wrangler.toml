@@ -1,0 +1,7 @@
+name = "heikuang-geo-api"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+[[services]]
+binding = "PAGES"
+service = "heikuang-geo"

@@ -1,0 +1,10 @@
+{
+  "name": "heikuang-geo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler pages dev ./public --kv GEO_CACHE",
+    "deploy": "wrangler pages deploy ./public --project-name heikuang-geo",
+    "deploy:worker": "wrangler deploy"
+  }
+}

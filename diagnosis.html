@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>免费 GEO 诊断报告 — 紫框</title>
+    <meta name="description" content="免费诊断品牌在大模型中的可见性，检查网站 GEO 就绪度">
+    <meta property="og:title" content="免费 GEO 诊断报告 — 紫框">
+    <meta property="og:description" content="输入品牌名或网址，免费检测品牌在 AI 大模型中的可见性就绪度">
+    <meta property="og:url" content="https://zkoner.com/diagnosis">
+    <meta property="og:type" content="website">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "免费 GEO 诊断报告",
+      "description": "输入品牌名或网站地址，免费检测品牌在 AI 大模型中的可见性就绪度，生成可复制的诊断报告",
+      "url": "https://zkoner.com/diagnosis",
+      "provider": {
+        "@type": "Organization",
+        "name": "紫框",
+        "url": "https://zkoner.com"
+      }
+    }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #1e293b;
+        }
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Diagnosis Card */
+        .diagnosis-card {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 28px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            margin-bottom: 2rem;
+        }
+        .diagnosis-card h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        .diagnosis-card p {
+            color: #4b5563;
+            margin-bottom: 2rem;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            align-items: stretch;
+        }
+        .form-row input {
+            flex: 1;
+            padding: 1rem 1.2rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 14px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-row input:focus {
+            border-color: #7c3aed;
+        }
+        .btn-diagnose {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s;
+            white-space: nowrap;
+        }
+        .btn-diagnose:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(118, 75, 162, 0.3);
+        }
+        .btn-diagnose:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .form-hint {
+            font-size: 0.85rem;
+            color: #9ca3af;
+            margin-top: 0.5rem;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 3rem 0;
+        }
+        .loading.active { display: block; }
+        .spinner {
+            width: 48px; height: 48px;
+            border: 4px solid #e5e7eb;
+            border-top-color: #7c3aed;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading p { color: #6b7280; }
+
+        /* Results */
+        .results {
+            display: none;
+        }
+        .results.active { display: block; }
+
+        .score-ring {
+            text-align: center;
+            padding: 2rem 0;
+        }
+        .score-number {
+            font-size: 4rem;
+            font-weight: 800;
+            color: #7c3aed;
+        }
+        .score-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+        .score-bar {
+            height: 10px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 1rem auto;
+            max-width: 400px;
+        }
+        .score-bar-inner {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease;
+            background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);
+        }
+
+        .checks {
+            display: grid;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .check-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem 1.2rem;
+            border-radius: 16px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+        .check-icon {
+            font-size: 1.3rem;
+            width: 32px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .check-info { flex: 1; }
+        .check-info h4 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+        .check-info p {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        .suggestions {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #fefce8;
+            border: 1px solid #fde68a;
+            border-radius: 16px;
+        }
+        .suggestions h3 {
+            font-size: 1rem;
+            color: #92400e;
+            margin-bottom: 0.8rem;
+        }
+        .suggestions ul {
+            list-style: none;
+        }
+        .suggestions ul li {
+            padding: 0.3rem 0;
+            font-size: 0.9rem;
+            color: #78350f;
+        }
+        .suggestions ul li::before {
+            content: '→ ';
+            font-weight: bold;
+        }
+
+        .error-msg {
+            display: none;
+            padding: 1rem;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            color: #991b1b;
+            margin-top: 1rem;
+        }
+        .error-msg.active { display: block; }
+
+        /* Copy button */
+        .copy-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 1.5rem;
+        }
+        .copy-btn:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        .copy-btn.copied {
+            background: #d1fae5;
+            border-color: #6ee7b7;
+            color: #059669;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 640px) {
+            .diagnosis-card { padding: 1.5rem; }
+            .form-row { flex-direction: column; }
+            .btn-diagnose { width: 100%; }
+            .diagnosis-card h1 { font-size: 1.5rem; }
+        }
+        /* ===== Navigation ===== */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-logo {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            text-decoration: none;
+            letter-spacing: 2px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 6px;
+            line-height: 1.2;
+        }
+    </style>
+        </head>
+<body>
+
+    <header>
+        <nav id="navbar">
+            <a href="/" class="nav-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="28" height="28" style="display:block">
+                  <rect x="4" y="4" width="92" height="92" rx="8" ry="8" fill="none" stroke="#000" stroke-width="4.5"/>
+                  <text x="50" y="58" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="44" fill="#fff">ZK</text>
+                  <line x1="28" y1="74" x2="72" y2="74" stroke="#000" stroke-width="2.5" stroke-linecap="round"/>
+                  <line x1="28" y1="84" x2="56" y2="84" stroke="#000" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+                <span style="font-size:1.1rem;font-weight:600;letter-spacing:2px;color:#fff">紫框AI咨询</span>
+            </a>
+            <div class="nav-links">
+                <a href="nodes.html" style="color:rgba(255,255,255,0.85);font-size:0.9rem;transition:color 0.2s">寅图</a>
+                <a href="/" class="nav-cta">🏠 首页</a>
+            </div>
+        </nav>
+    </header>
+
+    
+
+    <div class="container">
+        <div class="diagnosis-card">
+            <h1>🔍 免费 GEO 诊断报告</h1>
+            <p>输入品牌名或网站地址，立即生成品牌在大模型中的可见性报告</p>
+
+            <div class="form-group">
+                <label for="brandInput">品牌名 / 网站 URL</label>
+                <div class="form-row">
+                    <input type="text" id="brandInput" placeholder="例如：你的品牌名 或 https://example.com" autocomplete="off">
+                    <button class="btn-diagnose" id="diagnoseBtn" onclick="runDiagnosis()">免费出报告</button>
+                </div>
+                <div class="form-hint">支持输入品牌名称或完整网站地址</div>
+            </div>
+
+            <div class="error-msg" id="errorMsg"></div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>正在扫描网站 GEO 就绪度...</p>
+            </div>
+
+            <div class="results" id="results">
+                <div class="score-ring">
+                    <div class="score-number" id="scoreNum">0</div>
+                    <div class="score-label">GEO 就绪度评分</div>
+                    <div class="score-bar">
+                        <div class="score-bar-inner" id="scoreBar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="checks" id="checksList"></div>
+
+                <div class="suggestions" id="suggestions" style="display:none">
+                    <h3>📋 咨询建议</h3>
+                    <ul id="suggestionsList"></ul>
+                </div>
+
+                <button class="copy-btn" id="copyBtn" onclick="copyReport()">📋 一键复制报告</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div style="display:flex;align-items:center;justify-content:center;margin-bottom:0.5rem;color:rgba(255,255,255,0.7);font-size:1rem;">
+        </div>
+        © <time datetime="2026">2026</time> 紫框 — GEO 生成式咨询平台<br>
+        联系方式：张明夷 18215943235（微信同号）
+    </footer>
+
+    <script>
+        async function runDiagnosis() {
+            const input = document.getElementById('brandInput').value.trim();
+            if (!input) {
+                showError('请输入品牌名或网站地址');
+                return;
+            }
+
+            const btn = document.getElementById('diagnoseBtn');
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const errorMsg = document.getElementById('errorMsg');
+
+            btn.disabled = true;
+            errorMsg.classList.remove('active');
+            results.classList.remove('active');
+            loading.classList.add('active');
+
+            try {
+                // Extract domain from input
+                let domain = input;
+                if (!input.startsWith('http://') && !input.startsWith('https://')) {
+                    // Might be a brand name, try as domain with .com
+                    if (input.includes('.')) {
+                        domain = 'https://' + input;
+                    } else {
+                        // Pure brand name - use diagnostic with just the name
+                        domain = input;
+                    }
+                }
+
+                const data = await doDiagnosis(input, domain);
+                showResults(data);
+            } catch (e) {
+                showError('诊断失败：' + e.message);
+            } finally {
+                btn.disabled = false;
+                loading.classList.remove('active');
+            }
+        }
+
+        async function doDiagnosis(brand, domain) {
+            const isUrl = domain.startsWith('http');
+            const checks = [];
+
+            let total = 0;
+            let passed = 0;
+
+            if (isUrl) {
+                // Check 1: robots.txt
+                const robotsCheck = await checkRobotsTxt(domain);
+                checks.push(robotsCheck);
+                if (robotsCheck.pass) passed++;
+                total++;
+
+                // Check 2: llms.txt
+                const llmsCheck = await checkLlmsTxt(domain);
+                checks.push(llmsCheck);
+                if (llmsCheck.pass) passed++;
+                total++;
+
+                // Check 3: Schema.org
+                const schemaCheck = await checkSchema(domain);
+                checks.push(schemaCheck);
+                if (schemaCheck.pass) passed++;
+                total++;
+
+                // Check 4: Page content
+                const contentCheck = await checkContent(domain);
+                checks.push(contentCheck);
+                if (contentCheck.pass) passed++;
+                total++;
+
+                // Check 5: HTTPS + SSL
+                const httpsCheck = await checkHttps(domain);
+                checks.push(httpsCheck);
+                if (httpsCheck.pass) passed++;
+                total++;
+
+                // Check 6: Page speed hints
+                const speedCheck = await checkSpeed(domain);
+                checks.push(speedCheck);
+                if (speedCheck.pass) passed++;
+                total++;
+
+                // Check 7: Meta tags
+                const metaCheck = await checkMeta(domain);
+                checks.push(metaCheck);
+                if (metaCheck.pass) passed++;
+                total++;
+            } else {
+                // Brand name only - basic checks
+                checks.push({
+                    icon: '🏷️',
+                    title: '品牌名称识别',
+                    detail: `"${brand}" 已录入诊断系统`,
+                    pass: true
+                });
+                passed++; total++;
+
+                checks.push({
+                    icon: '🌐',
+                    title: '网站检测',
+                    detail: '未提供网站地址，部分检测跳过',
+                    pass: null
+                });
+                total++;
+
+                checks.push({
+                    icon: '📋',
+                    title: '品牌信息完整度',
+                    detail: '建议提供官网地址以获得完整诊断',
+                    pass: null
+                });
+                total++;
+            }
+
+            const score = total > 0 ? Math.round((passed / total) * 100) : 0;
+
+            // Generate suggestions
+            const suggestions = [];
+            checks.forEach(c => {
+                if (c.pass === false) {
+                    suggestions.push(c.suggestion || `${c.title} — 需要咨询`);
+                }
+                if (c.pass === null && c.suggestion) {
+                    suggestions.push(c.suggestion);
+                }
+            });
+
+            if (suggestions.length === 0 && isUrl) {
+                suggestions.push('你的网站 GEO 基础状态良好！建议进一步做品牌 AI 可见性扫描。');
+            }
+
+            return { score, checks, suggestions };
+        }
+
+        async function fetchUrl(url, timeout = 8000) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeout);
+            try {
+                const resp = await fetch('/api/proxy?url=' + encodeURIComponent(url), {
+                    signal: controller.signal
+                });
+                clearTimeout(timer);
+                return resp;
+            } catch {
+                clearTimeout(timer);
+                // Fallback: try direct
+                try {
+                    const resp = await fetch(url, {
+                        mode: 'no-cors',
+                        signal: AbortSignal.timeout(timeout)
+                    });
+                    return resp;
+                } catch {
+                    return null;
+                }
+            }
+        }
+
+        async function checkRobotsTxt(domain) {
+            try {
+                const base = new URL(domain).origin;
+                const resp = await fetchUrl(base + '/robots.txt');
+                if (resp && resp.ok) {
+                    const text = await resp.text();
+                    const hasGPT = /GPT|ChatGPT|OpenAI|CCBot|Claude-Web|ClaudeBot/i.test(text);
+                    return {
+                        icon: '🤖',
+                        title: 'robots.txt AI 爬虫',
+                        detail: hasGPT
+                            ? '已允许 AI 爬虫访问 ✓'
+                            : '未检测到 AI 爬虫指令，建议添加',
+                        pass: hasGPT,
+                        suggestion: '在 robots.txt 中添加 Allow: CCBot, GPTBot, Claude-Web 等 AI 爬虫'
+                    };
+                }
+                return {
+                    icon: '🤖',
+                    title: 'robots.txt',
+                    detail: '未找到或无法访问',
+                    pass: false,
+                    suggestion: '创建 robots.txt 文件，允许 AI 爬虫抓取'
+                };
+            } catch {
+                return {
+                    icon: '🤖',
+                    title: 'robots.txt',
+                    detail: '检测失败',
+                    pass: false,
+                    suggestion: '确保网站可访问并配置 robots.txt'
+                };
+            }
+        }
+
+        async function checkLlmsTxt(domain) {
+            try {
+                const base = new URL(domain).origin;
+                const resp = await fetchUrl(base + '/llms.txt');
+                if (resp && resp.ok) {
+                    const text = await resp.text();
+                    const hasContent = text.trim().length > 20;
+                    return {
+                        icon: '📄',
+                        title: 'llms.txt',
+                        detail: hasContent
+                            ? '已配置 ✓ （大模型专用索引文件）'
+                            : '文件存在但内容较少',
+                        pass: hasContent,
+                        suggestion: '完善 llms.txt，添加品牌介绍、核心页面、FAQ 等'
+                    };
+                }
+                return {
+                    icon: '📄',
+                    title: 'llms.txt',
+                    detail: '未配置（大模型专用文件）',
+                    pass: false,
+                    suggestion: '创建 llms.txt 文件，帮助大模型更好理解你的网站结构'
+                };
+            } catch {
+                return {
+                    icon: '📄',
+                    title: 'llms.txt',
+                    detail: '检测失败',
+                    pass: false,
+                    suggestion: '确保网站可访问并创建 llms.txt'
+                };
+            }
+        }
+
+        async function checkSchema(domain) {
+            try {
+                const resp = await fetchUrl(domain);
+                if (resp && resp.ok) {
+                    const html = await resp.text();
+                    const hasJsonLd = html.includes('application/ld+json') || html.includes('"@context"');
+                    const hasSchema = /itemscope|itemtype|schema\.org/i.test(html);
+                    return {
+                        icon: '🔗',
+                        title: '结构化数据 (Schema.org)',
+                        detail: hasJsonLd
+                            ? '检测到 JSON-LD 结构化数据 ✓'
+                            : hasSchema
+                                ? '检测到部分 Schema 标记，建议补充 JSON-LD'
+                                : '未检测到结构化数据',
+                        pass: hasJsonLd,
+                        suggestion: '添加 JSON-LD 格式的 Organization/Product/FAQ Schema'
+                    };
+                }
+                return {
+                    icon: '🔗',
+                    title: '结构化数据',
+                    detail: '无法获取页面内容',
+                    pass: false,
+                    suggestion: '确保网站可访问并添加结构化数据'
+                };
+            } catch {
+                return {
+                    icon: '🔗',
+                    title: '结构化数据',
+                    detail: '检测失败',
+                    pass: false,
+                    suggestion: '添加 JSON-LD 格式的结构化数据'
+                };
+            }
+        }
+
+        async function checkContent(domain) {
+            try {
+                const resp = await fetchUrl(domain);
+                if (resp && resp.ok) {
+                    const html = await resp.text();
+                    // Check for common content signals
+                    const wordCount = html.replace(/<[^>]*>/g, '').split(/\s+/).length;
+                    const hasH1 = /<h1[^>]*>[\s\S]*?<\/h1>/i.test(html);
+                    const hasMeta = /<meta[^>]+name="description"[^>]*>/i.test(html);
+                    return {
+                        icon: '📝',
+                        title: '内容质量',
+                        detail: wordCount > 500
+                            ? `页面约 ${wordCount} 字${hasH1 ? '，有 H1 标题 ✓' : '，缺少 H1 标题'}`
+                            : '内容较少，建议丰富页面内容',
+                        pass: wordCount > 500 && hasH1 && hasMeta,
+                        suggestion: '增加原创深度内容（建议每页 1000+ 字），确保有 H1 标题和 Meta Description'
+                    };
+                }
+                return {
+                    icon: '📝',
+                    title: '内容质量',
+                    detail: '无法获取页面内容',
+                    pass: false,
+                    suggestion: '确保网站可正常访问'
+                };
+            } catch {
+                return {
+                    icon: '📝',
+                    title: '内容质量',
+                    detail: '检测失败',
+                    pass: false,
+                    suggestion: '添加原创、深度的品牌内容'
+                };
+            }
+        }
+
+        async function checkHttps(domain) {
+            try {
+                const url = new URL(domain);
+                return {
+                    icon: '🔒',
+                    title: 'HTTPS / SSL',
+                    detail: url.protocol === 'https:'
+                        ? '已启用 HTTPS ✓'
+                        : '未使用 HTTPS，建议开启',
+                    pass: url.protocol === 'https:',
+                    suggestion: '配置 SSL 证书，全站启用 HTTPS'
+                };
+            } catch {
+                return {
+                    icon: '🔒',
+                    title: 'HTTPS / SSL',
+                    detail: '无法确定',
+                    pass: false,
+                    suggestion: '确保网站使用 HTTPS'
+                };
+            }
+        }
+
+        async function checkSpeed(domain) {
+            return {
+                icon: '⚡',
+                title: '页面性能',
+                detail: '请使用 PageSpeed Insights 进一步检测 Core Web Vitals',
+                pass: true,
+                suggestion: '咨询 LCP（首屏加载）、INP（交互延迟）、CLS（布局偏移）'
+            };
+        }
+
+        async function checkMeta(domain) {
+            try {
+                const resp = await fetchUrl(domain);
+                if (resp && resp.ok) {
+                    const html = await resp.text();
+                    const hasDesc = /<meta[^>]+name="description"[^>]*content="([^"]+)"[^>]*>/i.test(html);
+                    const hasOg = /<meta[^>]+property="og:title"[^>]*>/i.test(html);
+                    const hasViewport = /<meta[^>]+name="viewport"[^>]*>/i.test(html);
+                    let detail = hasDesc ? '有 Meta Description ✓' : '缺 Meta Description';
+                    if (hasOg) detail += '，有 Open Graph ✓';
+                    if (hasViewport) detail += '，有 Viewport ✓';
+                    return {
+                        icon: '🏷️',
+                        title: 'Meta 标签',
+                        detail,
+                        pass: hasDesc && hasOg,
+                        suggestion: '补充 Meta Description（含关键词），配置 Open Graph 标签'
+                    };
+                }
+                return {
+                    icon: '🏷️',
+                    title: 'Meta 标签',
+                    detail: '无法获取页面',
+                    pass: false,
+                    suggestion: '确保网站可访问并咨询 Meta 标签'
+                };
+            } catch {
+                return {
+                    icon: '🏷️',
+                    title: 'Meta 标签',
+                    detail: '检测失败',
+                    pass: false,
+                    suggestion: '添加 Meta Description 和 Open Graph 标签'
+                };
+            }
+        }
+
+        function showResults(data) {
+            const results = document.getElementById('results');
+            const scoreNum = document.getElementById('scoreNum');
+            const scoreBar = document.getElementById('scoreBar');
+            const checksList = document.getElementById('checksList');
+            const suggestionsDiv = document.getElementById('suggestions');
+            const suggestionsList = document.getElementById('suggestionsList');
+
+            // Animate score
+            scoreNum.textContent = '0';
+            scoreBar.style.width = '0%';
+            setTimeout(() => {
+                scoreNum.textContent = data.score;
+                scoreBar.style.width = data.score + '%';
+            }, 100);
+
+            // Render checks
+            checksList.innerHTML = data.checks.map(c => `
+                <div class="check-item">
+                    <div class="check-icon">${c.pass === true ? '✅' : c.pass === false ? '❌' : '➖'}</div>
+                    <div class="check-info">
+                        <h4>${c.icon} ${c.title}</h4>
+                        <p>${c.detail}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            // Render suggestions
+            if (data.suggestions && data.suggestions.length > 0) {
+                suggestionsDiv.style.display = 'block';
+                suggestionsList.innerHTML = data.suggestions.map(s => `<li>${s}</li>`).join('');
+            } else {
+                suggestionsDiv.style.display = 'none';
+            }
+
+            results.classList.add('active');
+            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function copyReport() {
+            const brand = document.getElementById('brandInput').value.trim();
+            const score = document.getElementById('scoreNum').textContent;
+            const checkItems = document.querySelectorAll('.check-item');
+            const suggestionItems = document.querySelectorAll('#suggestionsList li');
+
+            let text = '🔍 紫框 品牌 GEO 诊断报告\n';
+            text += '═══════════════════════════════\n\n';
+            text += `品牌/网址：${brand}\n`;
+            text += `GEO 就绪度评分：${score}/100\n\n`;
+            text += '── 检测项 ──\n';
+            checkItems.forEach(item => {
+                const icon = item.querySelector('.check-icon').textContent.trim();
+                const title = item.querySelector('h4').textContent.trim();
+                const detail = item.querySelector('p').textContent.trim();
+                text += `${icon} ${title}\n   ${detail}\n`;
+            });
+            if (suggestionItems.length > 0) {
+                text += '\n── 咨询建议 ──\n';
+                suggestionItems.forEach(s => text += `→ ${s.textContent}\n`);
+            }
+            text += '\n═══════════════════════════════\n';
+            text += '由 紫框 (https://zkoner.com) 生成\n';
+
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = '✅ 已复制！';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '📋 一键复制报告';
+                    btn.classList.remove('copied');
+                }, 2500);
+            }).catch(() => {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = '✅ 已复制！';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '📋 一键复制报告';
+                    btn.classList.remove('copied');
+                }, 2500);
+            });
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            el.textContent = msg;
+            el.classList.add('active');
+        }
+    </script>
+</body>
+</html>
