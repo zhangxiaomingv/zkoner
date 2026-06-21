@@ -120,42 +120,7 @@
       color: rgba(255,255,255,0.5); font-size: 12px; font-weight: 400;
       letter-spacing: 1px; margin-right: 12px; user-select: none;
     }
-    .node-info {
-      position: fixed; left: 32px; top: 80px; z-index: 200;
-      padding: 16px 24px;
-      background: rgba(10, 10, 15, 0.85);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 10px;
-      color: #fff;
-      font-size: 13px;
-      font-family: 'Inter', sans-serif;
-      opacity: 0; transition: opacity 0.25s;
-      pointer-events: none;
-      text-align: left;
-      line-height: 1.6;
-      min-width: 180px;
-    }
-    .node-info.show { opacity: 1; pointer-events: auto; }
-    .node-info .num { font-size: 16px; font-weight: 500; color: rgba(255,255,255,0.5); }
-    .node-info .gpg-status {
-      margin-top: 10px; padding-top: 10px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      font-size: 12px; line-height: 1.5;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .node-info .gpg-status .gpg-icon { font-size: 14px; flex-shrink: 0; }
-    .node-info .gpg-status.verified { color: rgba(68, 255, 136, 0.85); }
-    .node-info .gpg-status.declared { color: rgba(255, 200, 68, 0.85); }
-    .node-info .gpg-status.none { color: rgba(255,255,255,0.25); }
-    .node-info .gpg-status .gpg-spinner {
-      display: inline-block; width: 10px; height: 10px;
-      border: 1.5px solid rgba(255,255,255,0.3);
-      border-top-color: rgba(255,255,255,0.8);
-      border-radius: 50%;
-      animation: gpgSpin 0.8s linear infinite;
-    }
-    @keyframes gpgSpin { to { transform: rotate(360deg); } }
+    .node-info { display: none; }
     .query-highlight {
       position: fixed; pointer-events: none; z-index: 50;
       border: 1.5px solid rgba(255,255,255,0.6);
@@ -165,6 +130,237 @@
       opacity: 0; transition: opacity 0.3s;
     }
     .query-highlight.show { opacity: 0.7; }
+
+    /* ── 已注册节点金色光环 ── */
+    .registered-glow {
+      position: fixed; pointer-events: none; z-index: 49;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    .registered-glow.show { opacity: 0.6; }
+
+    /* ── Detail Panel ── */
+    .detail-overlay {
+      position: fixed; inset: 0; z-index: 300;
+      background: rgba(0,0,0,0.5);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+    .detail-overlay.show { opacity: 1; pointer-events: auto; }
+
+    .detail-panel {
+      position: fixed; top: 0; right: 0; z-index: 310;
+      width: 380px; max-width: 92vw;
+      height: 100%; height: 100dvh;
+      background: rgba(12, 14, 22, 0.94);
+      backdrop-filter: blur(24px);
+      border-left: 1px solid rgba(255,255,255,0.08);
+      transform: translateX(100%);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s;
+      overflow-y: auto;
+      padding: 24px;
+      color: #fff;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    .detail-panel.show { transform: translateX(0); box-shadow: -8px 0 40px rgba(0,0,0,0.5); }
+
+    .dp-close {
+      position: absolute; top: 18px; right: 18px;
+      background: none; border: none; color: rgba(255,255,255,0.3);
+      font-size: 22px; cursor: pointer; padding: 4px 8px;
+      line-height: 1; border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .dp-close:hover { color: #fff; background: rgba(255,255,255,0.08); }
+
+    .dp-section { margin-bottom: 20px; }
+    .dp-section:last-child { margin-bottom: 0; }
+    .dp-label {
+      font-size: 11px; letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.3); text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .dp-name { font-size: 24px; font-weight: 700; line-height: 1.2; }
+    .dp-serial {
+      font-size: 14px; color: rgba(255,255,255,0.45);
+      margin-top: 4px; font-weight: 400;
+    }
+    .dp-stat { font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.7); }
+    .dp-stat strong { color: #fff; font-weight: 500; }
+    .dp-url {
+      display: inline-block; margin-top: 6px;
+      color: rgba(68, 150, 255, 0.8); font-size: 13px; text-decoration: none;
+      word-break: break-all;
+      transition: color 0.2s;
+    }
+    .dp-url:hover { color: rgba(68, 150, 255, 1); }
+    .dp-gpg {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 12px; border-radius: 8px;
+      font-size: 12px; line-height: 1.5;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      word-break: break-all;
+    }
+    .dp-gpg.verified { border-color: rgba(68, 255, 136, 0.2); background: rgba(68, 255, 136, 0.04); }
+    .dp-gpg.declared { border-color: rgba(255, 200, 68, 0.15); background: rgba(255, 200, 68, 0.03); }
+    .dp-gpg .gpgi { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .dp-gpg .gpgi.ver { color: #44ff88; }
+    .dp-gpg .gpgi.dec { color: #ffc844; }
+    .dp-gpg .gpgi.non { color: rgba(255,255,255,0.25); }
+    .dp-statement {
+      font-size: 14px; line-height: 1.6;
+      color: rgba(255,255,255,0.8);
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      border-left: 2px solid rgba(255, 200, 68, 0.3);
+    }
+    .dp-close-btn {
+      display: block; width: 100%;
+      padding: 10px; margin-top: 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; color: rgba(255,255,255,0.5);
+      font-size: 13px; cursor: pointer; text-align: center;
+      transition: background 0.2s, color 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .dp-close-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+    @media (max-width: 480px) {
+      .detail-panel { padding: 16px; width: 100vw; max-width: 100vw; }
+      .dp-name { font-size: 20px; }
+    }
+
+    /* ── Scroll Content ── */
+    .scroll-content {
+      position: relative; z-index: 10;
+      min-height: 50vh;
+      background: linear-gradient(180deg, rgba(11,14,20,0.95) 0%, #0B0E14 100%);
+      padding-top: 20px;
+    }
+    .section-yintu {
+      max-width: 680px; margin: 0 auto;
+      padding: 60px 20px 40px;
+    }
+    .section-yintu h2 {
+      font-family: 'Ma Shan Zheng', serif;
+      font-size: 32px; font-weight: 400;
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 20px;
+    }
+    .section-yintu h2 small {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px; font-weight: 300;
+      color: rgba(255,255,255,0.3);
+      margin-left: 12px;
+    }
+    .section-yintu p {
+      font-size: 14px; line-height: 1.8;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 16px;
+    }
+    .node-table-wrap {
+      margin: 32px 0;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .node-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 13px;
+    }
+    .node-table th {
+      text-align: left; padding: 10px 14px;
+      color: rgba(255,255,255,0.3); font-weight: 400;
+      font-size: 11px; letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.02);
+    }
+    .node-table td {
+      padding: 10px 14px;
+      color: rgba(255,255,255,0.6);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .node-table tr:last-child td { border-bottom: none; }
+    .node-table .nt-num { color: rgba(255,255,255,0.25); font-size: 12px; }
+    .node-table .nt-name { color: #fff; font-weight: 500; }
+    .node-table .nt-url a {
+      color: rgba(68, 150, 255, 0.7); text-decoration: none;
+      font-size: 12px; transition: color 0.2s;
+    }
+    .node-table .nt-url a:hover { color: rgba(68, 150, 255, 1); text-decoration: underline; }
+    .node-table .nt-dizhi {
+      display: inline-block;
+      padding: 2px 8px; border-radius: 4px;
+      font-size: 12px; font-weight: 500;
+    }
+    .node-table .nt-dizhi.occupied { color: #ffc844; }
+    .node-table .nt-dizhi.free { color: rgba(255,255,255,0.15); }
+    .node-table .nt-date { color: rgba(255,255,255,0.3); font-size: 12px; }
+    .node-table .nt-status {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; padding: 2px 8px; border-radius: 4px;
+    }
+    .node-table .nt-status.reg { background: rgba(68, 255, 136, 0.1); color: #44ff88; }
+    .node-table .nt-status.empty { color: rgba(255,255,255,0.15); }
+    .node-table tbody tr { transition: background 0.3s; }
+    .node-table tbody tr.hl { background: rgba(255, 200, 68, 0.06); }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 12px; margin: 20px 0;
+    }
+    .stat-card {
+      padding: 16px; border-radius: 8px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      text-align: center;
+    }
+    .stat-card .num {
+      font-size: 28px; font-weight: 700; color: #fff;
+      line-height: 1.2;
+    }
+    .stat-card .num.gold { color: #ffc844; }
+    .stat-card .num.blue { color: rgba(68, 150, 255, 0.9); }
+    .stat-card .lbl {
+      font-size: 11px; color: rgba(255,255,255,0.3);
+      margin-top: 4px; letter-spacing: 0.5px;
+    }
+    .howto-steps {
+      list-style: none; padding: 0;
+      counter-reset: step;
+    }
+    .howto-steps li {
+      counter-increment: step;
+      padding: 12px 0 12px 40px;
+      position: relative;
+      font-size: 14px; color: rgba(255,255,255,0.6);
+      line-height: 1.6;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .howto-steps li:last-child { border-bottom: none; }
+    .howto-steps li::before {
+      content: counter(step);
+      position: absolute; left: 0; top: 12px;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: rgba(255, 200, 68, 0.12);
+      border: 1px solid rgba(255, 200, 68, 0.25);
+      color: #ffc844; font-size: 12px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── Starfield ── */
+    #starfieldCanvas {
+      position: absolute; inset: 0; z-index: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
 
     /* ── Three.js 覆盖层 ── */
     #threeCanvas {
@@ -221,7 +417,7 @@
       .query-box { height: 40px; padding: 0 8px 0 12px; }
       .query-box input { width: 58px; }
       .query-box .q-go { padding: 6px 8px; }
-      .node-info { left: 12px; top: 60px; padding: 12px 16px; font-size: 12px; right: 12px; border-radius: 8px; }
+      .node-info { display: none; }
       .yintu { font-size: 48px; }
       .query-highlight { width: 18px; height: 18px; }
     }
@@ -264,13 +460,144 @@
   <div class="bg-gradient"></div>
   <div class="bg-noise"></div>
   <div class="query-highlight" id="queryHighlight"></div>
-  <div class="node-info" id="nodeInfo"></div>
+  <div class="registered-glow" id="regGlow1"></div>
+  <div class="registered-glow" id="regGlow2"></div>
   <div class="yintu">寅图</div>
-  <div class="spiral-hero" id="spiralHero">
-    <canvas id="nodeCanvas"></canvas>
-    <canvas id="threeCanvas"></canvas>
+
+  <div class="detail-overlay" id="detailOverlay"></div>
+  <div class="detail-panel" id="detailPanel">
+    <button class="dp-close" id="dpClose">✕</button>
+    <div class="dp-section">
+      <div class="dp-name" id="dpName">—</div>
+      <div class="dp-serial" id="dpSerial"></div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-label">基本信息</div>
+      <div class="dp-stat" id="dpInfo"></div>
+    </div>
+    <div class="dp-section" id="dpStatementSection" style="display:none">
+      <div class="dp-label">声明</div>
+      <div class="dp-statement" id="dpStatement"></div>
+    </div>
+    <div class="dp-section" id="dpGpgSection" style="display:none">
+      <div class="dp-label">GPG 签名</div>
+      <div class="dp-gpg declared" id="dpGpg">
+        <span class="gpgi dec" id="dpGpgIcon">⏳</span>
+        <span id="dpGpgText">验证中...</span>
+      </div>
+    </div>
+    <button class="dp-close-btn" id="dpCloseBtn">关闭</button>
   </div>
 
+  <div class="spiral-hero" id="spiralHero">
+    <canvas id="starfieldCanvas"></canvas>
+    <canvas id="nodeCanvas"></canvas>
+    <canvas id="threeCanvas"></canvas>
+    <div class="hero-scroll-hint" id="heroScrollHint">
+      向下滚动查看更多
+      <div class="hero-scroll-hint-arrow"></div>
+    </div>
+  </div>
+
+  <div class="scroll-content" id="scrollContent">
+    <div class="section-yintu" id="aboutSection">
+      <h2>什么是寅图 <small>Yin Map</small></h2>
+      <p>
+        寅图是一个群体引力图谱——129,600 个固定位置，每个位置对应一个数字锚点。
+        归位不是注册，是存在到了那个份上。
+      </p>
+      <p>
+        每个节点由 GPG 签名 git commit 永久记录，任何人都可以 fork 仓库作为独立见证。
+        智慧在螺旋中生长，秩序从混沌中涌现。
+      </p>
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="num" id="statTotal">129,600</div>
+          <div class="lbl">总容量</div>
+        </div>
+        <div class="stat-card">
+          <div class="num gold" id="statRegistered">0</div>
+          <div class="lbl">已归位</div>
+        </div>
+        <div class="stat-card">
+          <div class="num blue" id="statCommitted">0</div>
+          <div class="lbl">GPG 签名</div>
+        </div>
+      </div>
+
+      <h2 style="margin-top:40px">已归位节点</h2>
+      <div class="node-table-wrap">
+        <table class="node-table" id="nodeTable">
+          <thead>
+            <tr>
+              <th>序号</th>
+              <th>地支</th>
+              <th>节点</th>
+              <th>URL</th>
+              <th>归位日</th>
+              <th>GPG</th>
+            </tr>
+          </thead>
+          <tbody id="nodeTableBody">
+            <tr><td colspan="6" style="text-align:center;color:rgba(255,255,255,0.2);padding:24px">加载中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 style="margin-top:40px">归位指引</h2>
+      <p>节点归位完全免费，序号的价值来自天道秩序中的真实存在，不是商品。</p>
+      <ol class="howto-steps">
+        <li>你的域名部署 <code style="font-size:12px;color:rgba(255,200,68,0.7)">schema.json</code> + <code style="font-size:12px;color:rgba(255,200,68,0.7)">timeline.json</code></li>
+        <li>Fork <a href="https://github.com/zhangxiaomingv/zkoner" target="_blank" style="color:rgba(68,150,255,0.7)">zkoner 仓库</a> 或提 Issue 告知你的域名</li>
+        <li>维护者验证域名文件后生成注册文件并 GPG 签名 commit</li>
+        <li>你将序号填入自己的 JSON 文件完成闭环</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    // ── Starfield particle system ──
+    (function() {
+      var sc = document.getElementById('starfieldCanvas');
+      if (!sc) return;
+      var sctx = sc.getContext('2d');
+      var sW, sH, stars = [], STAR_COUNT = 160;
+      function sResize() {
+        sW = window.innerWidth; sH = window.innerHeight;
+        sc.width = sW * (window.devicePixelRatio || 1);
+        sc.height = sH * (window.devicePixelRatio || 1);
+        sctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+      }
+      function sInit() {
+        stars = [];
+        for (var i = 0; i < STAR_COUNT; i++) {
+          stars.push({
+            x: Math.random() * sW,
+            y: Math.random() * sH,
+            r: 0.3 + Math.random() * 1.2,
+            a: 0.1 + Math.random() * 0.5,
+            speed: 0.0003 + Math.random() * 0.001,
+            phase: Math.random() * Math.PI * 2
+          });
+        }
+      }
+      function sDraw(time) {
+        sctx.clearRect(0, 0, sW, sH);
+        for (var i = 0; i < stars.length; i++) {
+          var s = stars[i];
+          var twinkle = 0.5 + 0.5 * Math.sin(time * s.speed + s.phase);
+          sctx.beginPath();
+          sctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          sctx.fillStyle = 'rgba(255,255,255,' + (s.a * twinkle).toFixed(3) + ')';
+          sctx.fill();
+        }
+      }
+      sResize();
+      sInit();
+      (function sLoop(time) { sDraw(time); requestAnimationFrame(sLoop); })(0);
+      window.addEventListener('resize', function() { sResize(); sInit(); });
+    })();
+  </script>
   <script>
     (function() {
       var canvas = document.getElementById('nodeCanvas');
@@ -730,6 +1057,94 @@
           ctx.restore();
         }
 
+        // ── 已注册节点金色光晕 + 标签（绘制在所有节点之上） ──
+        if (textAlpha > 0.01 && typeof __regNodes !== 'undefined' && __regNodes.length > 0) {
+          ctx.save();
+          for (var ri = 0; ri < __regNodes.length; ri++) {
+            var rn = __regNodes[ri];
+            var riIdx = rn.index - 1;
+            if (riIdx < 0 || riIdx >= total) continue;
+            var rp = spiralPos(riIdx);
+            var rrf = 1 + Math.sqrt(riIdx / total);
+
+            // 金色光晕
+            var rGlow = ctx.createRadialGradient(rp.x, rp.y, 0, rp.x, rp.y, 8 * rrf);
+            rGlow.addColorStop(0, 'rgba(255, 200, 68, 0.4)');
+            rGlow.addColorStop(0.5, 'rgba(255, 200, 68, 0.15)');
+            rGlow.addColorStop(1, 'rgba(255, 200, 68, 0)');
+            ctx.fillStyle = rGlow;
+            ctx.beginPath();
+            ctx.arc(rp.x, rp.y, 8 * rrf, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 金色光环
+            ctx.beginPath();
+            ctx.arc(rp.x, rp.y, 4 * rrf, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 200, 68, 0.7)';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // 呼吸光晕
+            var breathPulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.002 + ri);
+            ctx.beginPath();
+            ctx.arc(rp.x, rp.y, (5 + breathPulse * 3) * rrf, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 200, 68, ' + (0.2 * breathPulse).toFixed(3) + ')';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // 名字标签（仅缩放到足够大时显示）
+            if (zoom > 0.5) {
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'bottom';
+              ctx.font = '11px "Inter", system-ui, sans-serif';
+              ctx.fillStyle = 'rgba(255, 200, 68, 0.8)';
+              ctx.fillText(rn.name, rp.x, rp.y - 8 * rrf);
+
+              // 序号小标
+              ctx.textBaseline = 'top';
+              ctx.font = '10px "Inter", system-ui, sans-serif';
+              ctx.fillStyle = 'rgba(255, 200, 68, 0.4)';
+              ctx.fillText('#' + rn.index, rp.x, rp.y + 8 * rrf);
+            }
+          }
+
+          // ── 注册节点间连线 ──
+          if (__regNodes.length >= 2 && zoom > 0.4) {
+            for (var li = 0; li < __regNodes.length - 1; li++) {
+              for (var lj = li + 1; lj < __regNodes.length; lj++) {
+                var aIdx = __regNodes[li].index - 1;
+                var bIdx = __regNodes[lj].index - 1;
+                if (aIdx < 0 || bIdx < 0 || aIdx >= total || bIdx >= total) continue;
+                var pa = spiralPos(aIdx);
+                var pb = spiralPos(bIdx);
+                // 弧线（向上弯曲）
+                var midX = (pa.x + pb.x) / 2;
+                var midY = (pa.y + pb.y) / 2;
+                var dx = pb.x - pa.x;
+                var dy = pb.y - pa.y;
+                var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                var mx = -dy / dist * dist * 0.12;
+                var my = dx / dist * dist * 0.12;
+                ctx.beginPath();
+                ctx.moveTo(pa.x, pa.y);
+                var steps = 20;
+                for (var si = 1; si <= steps; si++) {
+                  var t = si / steps;
+                  var bx = (1 - t) * (1 - t) * pa.x + 2 * (1 - t) * t * (midX + mx) + t * t * pb.x;
+                  var by = (1 - t) * (1 - t) * pa.y + 2 * (1 - t) * t * (midY + my) + t * t * pb.y;
+                  ctx.lineTo(bx, by);
+                }
+                ctx.strokeStyle = 'rgba(255, 200, 68, 0.15)';
+                ctx.lineWidth = 0.6;
+                ctx.setLineDash([3, 5]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+              }
+            }
+          }
+          ctx.restore();
+        }
+
       }
 
       window.addEventListener('resize', function() { resize(); });
@@ -834,9 +1249,11 @@
 
       // ── 加载节点数据 ──
       var nodeData = {};
+      window.__regNodes = [];
       // 优先从 registry/INDEX 加载（轻量，生成速度快）
       fetch('./registry/INDEX').then(function(r){return r.text()}).then(function(text){
         var lines = text.trim().split('\n').filter(Boolean);
+        var regList = [];
         lines.forEach(function(line) {
           var parts = line.split(' ');
           var idx = parseInt(parts[0], 10);
@@ -848,10 +1265,32 @@
               gpgKey: parts[4] !== '-' ? parts[4] : undefined,
               since: parts[5] || ''
             };
+            regList.push(idx);
           }
         });
+        var count = Object.keys(nodeData).length;
         var sc = document.getElementById('supplyCount');
-        if (sc) sc.textContent = Object.keys(nodeData).length;
+        if (sc) sc.textContent = count;
+        window.__regNodes = Object.keys(nodeData).map(function(k){return nodeData[k];});
+        updateNodeTable();
+        updateStats(count);
+
+        // 异步加载每个注册节点的详细 JSON（含 statement）
+        regList.forEach(function(rIdx) {
+          var nd = nodeData[rIdx];
+          if (!nd) return;
+          // 从地支目录推断路径
+          var dizhiMap = {1:'子',2:'丑',3:'寅',4:'卯',5:'辰',6:'巳',7:'午',8:'未',9:'申',10:'酉',11:'戌',12:'亥'};
+          var dName = dizhiMap[(rIdx - 1) % 12 + 1] || '子';
+          var padded = ('00000' + rIdx).slice(-5);
+          fetch('./registry/registrations/' + dName + '/' + padded + '.json')
+            .then(function(r2){return r2.json()})
+            .then(function(jd) {
+              if (jd.statement) nd.statement = jd.statement;
+              if (jd.gpgFingerprint && !nd.gpgKey) nd.gpgKey = jd.gpgFingerprint;
+            })
+            .catch(function(){});
+        });
       }).catch(function(){
         // 降级：尝试旧 tu.json
         fetch('./tu.json').then(function(r){return r.json()}).then(function(d){
@@ -861,6 +1300,69 @@
           }
         }).catch(function(){});
       });
+
+      // ── 更新节点表格 ──
+      function updateNodeTable() {
+        var tbody = document.getElementById('nodeTableBody');
+        if (!tbody) return;
+        var keys = Object.keys(nodeData).map(Number).sort(function(a,b){return a-b;});
+        if (keys.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:rgba(255,255,255,0.2);padding:24px">暂无归位节点</td></tr>';
+          return;
+        }
+        var dizhiSymbols = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+        var html = '';
+        keys.forEach(function(k) {
+          var nd = nodeData[k];
+          var dzIdx = (k - 1) % 12;
+          html += '<tr data-idx="' + k + '">' +
+            '<td class="nt-num">#' + ('0000' + k).slice(-5) + '</td>' +
+            '<td><span class="nt-dizhi occupied">' + dizhiSymbols[dzIdx] + '</span></td>' +
+            '<td class="nt-name">' + escapeHtml(nd.name) + '</td>' +
+            '<td class="nt-url">' + (nd.url ? '<a href="' + nd.url + '" target="_blank">' + nd.url.replace(/^https?:\/\//,'').substring(0, 30) + '</a>' : '<span style="color:rgba(255,255,255,0.1)">—</span>') + '</td>' +
+            '<td class="nt-date">' + (nd.since || '—') + '</td>' +
+            '<td><span class="nt-status reg">' + (nd.gpgKey ? '🔒' : '○') + ' ' + (nd.gpgKey ? '已声明' : '未声明') + '</span></td>' +
+            '</tr>';
+        });
+        tbody.innerHTML = html;
+      }
+
+      function updateStats(count) {
+        var el = document.getElementById('statRegistered');
+        if (el) el.textContent = count;
+        var gpgEl = document.getElementById('statCommitted');
+        if (gpgEl && count > 0) gpgEl.textContent = count;
+      }
+
+      function escapeHtml(s) {
+        var d = document.createElement('div');
+        d.appendChild(document.createTextNode(s));
+        return d.innerHTML;
+      }
+
+      // ── 渐进揭示动画（首次加载螺旋渐显） ──
+      var revealProgress = 0;
+      var revealTarget = 0;
+      var revealStartTime = 0;
+      function startReveal() {
+        revealTarget = 1;
+        revealStartTime = performance.now();
+        // 降级缩小再恢复，制造初始缩放效果
+        window.__zoom = 0.15;
+        zoom = 0.15;
+        // 延迟启动揭示
+        setTimeout(function() {
+          window.__zoom = 0.2;
+          zoom = 0.2;
+          draw();
+        }, 100);
+      }
+      startReveal();
+      // 揭示过程中跟踪
+      var revealTimer = setInterval(function() {
+        if (revealProgress >= 1) { clearInterval(revealTimer); return; }
+        revealProgress = Math.min(1, (performance.now() - revealStartTime) / 2000);
+      }, 50);
 
       setInterval(function() {
         triBase += 1;
@@ -975,16 +1477,31 @@
           });
       }
 
-      // ── 节点查询 ──
+      // ── 节点查询 → 详情面板 ──
       var highlightEl = document.getElementById('queryHighlight');
-      var infoEl = document.getElementById('nodeInfo');
       var queryInput = document.getElementById('nodeQuery');
       var queryBtn = document.getElementById('nodeQueryBtn');
-      function doQuery() {
-        var val = parseInt(queryInput.value, 10);
+      var dpOverlay = document.getElementById('detailOverlay');
+      var dpPanel = document.getElementById('detailPanel');
+      var dpClose = document.getElementById('dpClose');
+      var dpCloseBtn = document.getElementById('dpCloseBtn');
+      var dpName = document.getElementById('dpName');
+      var dpSerial = document.getElementById('dpSerial');
+      var dpInfo = document.getElementById('dpInfo');
+      var dpStatement = document.getElementById('dpStatement');
+      var dpStatementSection = document.getElementById('dpStatementSection');
+      var dpGpgSection = document.getElementById('dpGpgSection');
+      var dpGpgIcon = document.getElementById('dpGpgIcon');
+      var dpGpgText = document.getElementById('dpGpgText');
+
+      function closeDetail() {
+        dpOverlay.classList.remove('show');
+        dpPanel.classList.remove('show');
+      }
+
+      function showDetail(val) {
         if (isNaN(val) || val < 1 || val > maxIndex) {
           highlightEl.classList.remove('show');
-          infoEl.classList.remove('show');
           return;
         }
         var n = spiralPos(val - 1);
@@ -992,51 +1509,108 @@
         highlightEl.style.top = n.y + 'px';
         highlightEl.classList.add('show');
 
+        // 更新滚动内容区高亮
+        var rows = document.querySelectorAll('#nodeTableBody tr');
+        for (var ri = 0; ri < rows.length; ri++) rows[ri].classList.remove('hl');
+        var targetRow = document.querySelector('#nodeTableBody tr[data-idx="' + val + '"]');
+        if (targetRow) targetRow.classList.add('hl');
+
         var rev = Math.floor((val - 1) / 12);
         var pos = (val - 1) % 12;
         var dizhiIdx = pos % 12;
         var nd = nodeData[val];
-        if (nd) {
-          var html =
-            '<div style="font-size:15px;font-weight:600;margin-bottom:4px">' + nd.name + '</div>' +
-            '<div class="num">' + DIZHI[dizhiIdx] + ' / ' + val + '</div>' +
-            (nd.url ? '<div style="margin-top:4px"><a href="' + nd.url + '" target="_blank" style="color:rgba(30,150,255,0.7);font-size:12px;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color=\'rgba(30,150,255,1)\'" onmouseout="this.style.color=\'rgba(30,150,255,0.7)\'">' + nd.url + '</a></div>' : '');
-          if (nd.gpgKey) {
-            html += '<div class="gpg-status declared" id="gpgStatus"><span class="gpg-spinner"></span> 检查 GPG 签名...</div>';
-          } else {
-            html += '<div class="gpg-status none"><span class="gpg-icon">○</span> 未声明 GPG 密钥</div>';
-          }
-          infoEl.innerHTML = html;
-          infoEl.classList.add('show');
 
-          // 异步检查 GPG
+        dpSerial.textContent = DIZHI[dizhiIdx] + ' / ' + val + '  ·  第 ' + (rev + 1) + ' 圈';
+        dpName.textContent = nd ? nd.name : '—';
+
+        // 基本信息
+        if (nd) {
+          dpInfo.innerHTML =
+            '<strong>归位日：</strong>' + (nd.since || '—') + '<br>' +
+            '<strong>地支：</strong>' + DIZHI[dizhiIdx];
+          dpStatementSection.style.display = nd.statement ? 'block' : 'none';
+          if (nd.statement) dpStatement.textContent = nd.statement;
+
+          // GPG
+          dpGpgSection.style.display = 'block';
+          dpGpgIcon.className = 'gpgi dec';
+          dpGpgIcon.textContent = '⏳';
+          dpGpgText.textContent = '验证 GPG 签名...';
+          dpGpgSection.className = 'dp-section';
+          var gpgBox = document.getElementById('dpGpg');
+          gpgBox.className = 'dp-gpg declared';
+
           if (nd.gpgKey) {
             checkGPGVerification(nd.url, nd.gpgKey, nd.github).then(function(result) {
-              var gpgEl = document.getElementById('gpgStatus');
-              if (!gpgEl) return;
-              gpgEl.className = 'gpg-status ' + (result.status === 'unknown_key' ? 'declared' : result.status);
-              var icon = result.status === 'verified' ? '🔒' : result.status === 'unknown_key' ? '🔑' : '⚠️';
+              dpGpgIcon.textContent = result.status === 'verified' ? '🔒' : result.status === 'unknown_key' ? '🔑' : '⚠️';
+              dpGpgIcon.className = 'gpgi ' + (result.status === 'unknown_key' ? 'dec' : result.status === 'verified' ? 'ver' : 'dec');
               var info = result.text;
-              if (result.repo) {
-                info += ' <span style="font-size:10px;opacity:0.6">(' + result.repo + ')</span>';
-              }
-              if (result.hint) {
-                info += '<br><span style="font-size:11px;opacity:0.65">' + result.hint + '</span>';
-              }
-              gpgEl.innerHTML = '<span class="gpg-icon">' + icon + '</span> ' + info;
+              if (result.repo) info += ' <span style="font-size:10px;opacity:0.6">(' + result.repo + ')</span>';
+              if (result.hint) info += '<br><span style="font-size:11px;opacity:0.65">' + result.hint + '</span>';
+              dpGpgText.innerHTML = info;
+              var cls = 'dp-gpg ' + (result.status === 'unknown_key' ? 'declared' : result.status);
+              gpgBox.className = cls;
             });
+          } else {
+            dpGpgIcon.textContent = '○';
+            dpGpgIcon.className = 'gpgi non';
+            dpGpgText.textContent = '未声明 GPG 密钥';
+            gpgBox.className = 'dp-gpg declared';
           }
         } else {
-          infoEl.innerHTML =
-            '<div class="num" style="color:rgba(255,255,255,0.3);font-weight:400;font-size:14px">' + DIZHI[dizhiIdx] + ' / ' + val + '</div>' +
-            '<div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px">序号待领</div>';
+          dpSerial.textContent = DIZHI[dizhiIdx] + ' / ' + val;
+          dpInfo.innerHTML = '<span style="color:rgba(255,255,255,0.3)">序号待领</span>';
+          dpStatementSection.style.display = 'none';
+          dpGpgSection.style.display = 'none';
         }
-        infoEl.classList.add('show');
+
+        // 显示详情面板
+        dpOverlay.classList.add('show');
+        dpPanel.classList.add('show');
+
+        // 滚动到对应表格行
+        if (targetRow) {
+          setTimeout(function() {
+            targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 200);
+        }
       }
 
-      queryBtn.addEventListener('click', doQuery);
+      queryBtn.addEventListener('click', function() {
+        showDetail(parseInt(queryInput.value, 10));
+      });
       queryInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') doQuery();
+        if (e.key === 'Enter') showDetail(parseInt(queryInput.value, 10));
+      });
+      dpClose.addEventListener('click', closeDetail);
+      dpCloseBtn.addEventListener('click', closeDetail);
+      dpOverlay.addEventListener('click', closeDetail);
+
+      // ── 表格行点击 → 详情面板 ──
+      var nodeTableBody = document.getElementById('nodeTableBody');
+      if (nodeTableBody) {
+        nodeTableBody.addEventListener('click', function(e) {
+          var tr = e.target.closest('tr');
+          if (!tr || !tr.dataset.idx) return;
+          var idx = parseInt(tr.dataset.idx, 10);
+          if (!isNaN(idx)) { showDetail(idx); }
+        });
+      }
+
+      // ── Canvas 点击检测（点击节点 → 详情面板） ──
+      canvas.addEventListener('click', function(e) {
+        var mx = e.clientX, my = e.clientY;
+        var closest = null, minDist = 24;
+        for (var i = 0; i < total; i++) {
+          var p = spiralPos(i);
+          var dx = mx - p.x, dy = my - p.y;
+          var d = Math.sqrt(dx*dx + dy*dy);
+          if (d < minDist) { minDist = d; closest = i + 1; }
+        }
+        if (closest !== null) {
+          queryInput.value = closest;
+          showDetail(closest);
+        }
       });
     })();
   </script>
