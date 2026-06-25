@@ -1,31 +1,33 @@
 # GEO Scanner
 
-> AI 可见性分析工具 — 分析你的网站在 AI 爬虫中的优化程度。
+> **AI Visibility Analyzer** — scan your website for AI crawler optimization.
+>
+> 中文：AI 可见性分析工具 — 分析你的网站在 ChatGPT、Claude、DeepSeek 等大模型中的可见性。
 >
 > https://zkoner.com
 
-## 功能
+## Features
 
-- **扫描**：抓取网页 + robots.txt + sitemap + llms.txt，40+ 规则检测
-- **评分**：6 大类别加权评分，AI 可见性一目了然
-- **修复**：自动生成 FAQ、Schema、llms.txt 等可复用模板
-- **双语**：中英文界面一键切换
+- **Scan** — crawl page + robots.txt + sitemap + llms.txt, 42 rules across 6 categories
+- **Score** — weighted GEO score with animated gauge
+- **Fix** — auto-generate FAQ, schema markup, llms.txt, and more
+- **Bilingual** — English / Chinese UI, switch with one click
 
-## 架构
+## Architecture
 
 ```
-crawler/       网页抓取引擎
-parser/        HTML 解析引擎
-scanner/       扫描调度 + hook 接口
-rules/         基础检测规则（42 条）
-fix-generator/ 修复方案生成
-templates/     可复用模板库
-history/       扫描历史存储
-ruledb/        社区规则注册表
-app/           Next.js 前端
+crawler/       Web page fetcher (HTML + robots + sitemap + llms)
+parser/        HTML parser (cheerio → structured PageData)
+scanner/       Scan orchestrator with hook system
+rules/         Base detection rules (6 categories, 42 rules)
+fix-generator/ Fix suggestion generator
+templates/     Reusable templates (FAQ, Schema, llms.txt, etc.)
+history/       Scan history storage (in-memory, swappable)
+ruledb/        Community rule registry
+app/           Next.js frontend
 ```
 
-## 快速开始
+## Quick Start
 
 ```bash
 git clone https://github.com/zhangxiaomingv/zkoner.git
@@ -35,20 +37,24 @@ npm run build
 npm start
 ```
 
-访问 http://localhost:3300
+Open http://localhost:3300
 
-## 技术栈
+## Tech Stack
 
 - Next.js 15, React 19, TypeScript
 - Tailwind CSS, shadcn/ui
-- Cheerio (HTML 解析)
+- Cheerio (HTML parsing)
 
-## 开源协议
+## License
 
-AGPL-3.0 — 详见 [LICENSE](LICENSE)
+AGPL-3.0 — see [LICENSE](LICENSE)
 
-商用许可请联系 zkoner.com
+Commercial license: zkoner.com
+
+## 项目模式
+
+Open-core (AGPL) + premium plugin. The `scanner/` module exposes `registerScanHooks()` for closed-source AI scoring engine.
 
 ---
 
-*让品牌在 ChatGPT、Claude、DeepSeek 等大模型中被看见。*
+*Make your brand visible in ChatGPT, Claude, DeepSeek, and beyond.*
