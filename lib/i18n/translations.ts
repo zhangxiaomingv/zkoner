@@ -33,6 +33,7 @@ export const translations: Record<Locale, Record<string, string>> = {
       "Receive a detailed report with AI visibility score and auto-generated fixes.",
 
     "categories.title": "What We Check",
+    "questions.categories": "What does ZKONER check?",
     "cat.technical": "Technical",
     "cat.technical.desc": "Title, description, headings, HTTPS, sitemap",
     "cat.ai-bot": "AI Bot Access",
@@ -241,6 +242,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     "how.step3.desc": "收到包含 AI 可见性评分和自动生成修复方案的详细报告。",
 
     "categories.title": "检查项目",
+    "questions.categories": "ZKONER 检查什么？",
     "cat.technical": "技术优化",
     "cat.technical.desc": "标题、描述、标题标签、HTTPS、站点地图",
     "cat.ai-bot": "AI 爬虫访问",

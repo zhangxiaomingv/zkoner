@@ -1,0 +1,19 @@
+# ZKONER
+
+> Zone + Key + Oner — 帮助你在某个领域成为被 AI 识别的关键实体。
+> Become a key entity that AI recognizes in your field.
+
+## 核心产品
+
+### GEO Scanner
+AI 可见性分析工具。分析你的网站在 ChatGPT、Claude、DeepSeek 等大模型中的可见性，获取可执行的优化方案。
+
+## 资源
+
+- 首页: https://zkoner.com
+- 扫描工具: https://zkoner.com (输入网址开始)
+- GitHub: https://github.com/zhangxiaomingv/zkoner
+
+## 关于
+
+ZKONER 致力于帮助个人和品牌在 AI 时代的数字世界中被看见、被推荐、被复述。

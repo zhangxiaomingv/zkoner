@@ -26,6 +26,20 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
           rel="stylesheet"
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "ZKONER",
+              url: "https://zkoner.com",
+              logo: "https://zkoner.com/logo.png",
+              description:
+                "Zone + Key + Oner — become a key entity that AI recognizes in your field.",
+            }),
+          }}
+        />
       </head>
       <body className="min-h-screen">
         <ClientShell>{children}</ClientShell>

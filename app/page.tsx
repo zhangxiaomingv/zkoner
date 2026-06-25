@@ -109,11 +109,26 @@ export default function HomePage() {
         </Card>
       </section>
 
-      {/* How it works — removed to protect methodology */}
+      {/* TLDR / Key Takeaways — for AI visibility */}
+      <section className="mx-auto max-w-3xl">
+        <div className="rounded-lg border border-primary/20 bg-primary/5 px-6 py-5">
+          <h2 className="text-sm font-semibold text-primary mb-3">
+            ⚡ TL;DR — {t("hero.title")}
+          </h2>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            <li><strong>{t("cat.geo")}</strong> — {t("cat.geo.desc")}</li>
+            <li><strong>{t("cat.technical")}</strong> — {t("cat.technical.desc")}</li>
+            <li><strong>{t("cat.ai-bot")}</strong> — {t("cat.ai-bot.desc")}</li>
+            <li><strong>{t("cat.entity")}</strong> — {t("cat.entity.desc")}</li>
+            <li><strong>{t("cat.query")}</strong> — {t("cat.query.desc")}</li>
+            <li><strong>{t("cat.citations")}</strong> — {t("cat.citations.desc")}</li>
+          </ul>
+        </div>
+      </section>
 
       {/* Categories */}
       <section className="mx-auto max-w-4xl">
-        <h2 className="mb-8 text-center text-2xl font-semibold">{t("categories.title")}</h2>
+        <h2 className="mb-8 text-center text-2xl font-semibold">{t("questions.categories")}</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[
             { icon: Gauge, nameKey: "cat.technical", descKey: "cat.technical.desc" },
@@ -137,6 +152,45 @@ export default function HomePage() {
               </CardHeader>
             </Card>
           ))}
+        </div>
+      </section>
+
+      {/* FAQ — for GEO optimization */}
+      <section className="mx-auto max-w-3xl">
+        <h2 className="mb-6 text-2xl font-semibold text-center">
+          {t("hero.title")} — FAQ
+        </h2>
+        <div className="space-y-4">
+          {[
+            { q: "What is ZKONER?", a: "ZKONER (Zone + Key + Oner) is an AI visibility analyzer that helps you become a key entity that AI recognizes in your field. Our GEO Scanner analyzes your website across 40+ rules and provides actionable fixes." },
+            { q: "How does the GEO Scanner work?", a: "Enter your URL, and we crawl your page, robots.txt, sitemap, and llms.txt. We then analyze 42 rules across 6 categories (Technical, AI Bot Access, Entity Recognition, Query Optimization, Citations, GEO) and generate a score with specific fix suggestions." },
+            { q: "What is GEO (Generative Engine Optimization)?", a: "GEO is the practice of optimizing your online presence so that AI models like ChatGPT, Claude, and DeepSeek accurately recognize and recommend your brand. Unlike SEO which optimizes for search engines, GEO optimizes for AI." },
+            { q: "Is ZKONER free?", a: "Yes, the basic scan is completely free. Enter any URL and get an instant AI visibility score with improvement suggestions." },
+            { q: "How can I improve my GEO score?", a: "Use our auto-generated fixes which include FAQ sections, JSON-LD schema markup, llms.txt files, question-format headings, reference sections, and more. Each fix comes with copy-ready templates." },
+          ].map((item, i) => (
+            <details key={i} className="group rounded-lg border border-border p-4">
+              <summary className="cursor-pointer text-sm font-medium list-none flex items-center justify-between">
+                {item.q}
+                <span className="text-muted-foreground group-open:hidden">+</span>
+                <span className="text-muted-foreground hidden group-open:inline">−</span>
+              </summary>
+              <p className="mt-2 text-sm text-muted-foreground">{item.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      {/* Author / Founder */}
+      <section className="mx-auto max-w-3xl text-center">
+        <h2 className="mb-4 text-2xl font-semibold">About ZKONER</h2>
+        <p className="text-sm text-muted-foreground max-w-xl mx-auto">
+          Built by <strong>张明夷 (Zhang Mingyi)</strong> — GEO researcher and AI visibility advocate.
+          ZKONER is an open-source project (AGPL) available on GitHub.
+        </p>
+        <div className="mt-3 flex justify-center gap-4 text-xs text-muted-foreground">
+          <a href="https://github.com/zhangxiaomingv/zkoner" target="_blank" rel="noopener noreferrer" className="hover:text-foreground underline underline-offset-2">GitHub</a>
+          <span>·</span>
+          <span>zkoner.com</span>
         </div>
       </section>
     </div>
