@@ -3,9 +3,9 @@ import "./globals.css";
 import ClientShell from "@/components/client-shell";
 
 export const metadata: Metadata = {
-  title: "GEO Scanner — AI Visibility Analyzer / AI 可见性分析器",
+  title: "ZKONER — GEO Scanner | AI 可见性分析器",
   description:
-    "Analyze your website's AI visibility. Scan for GEO optimization, AI crawler access, and structured data completeness.",
+    "Zone + Key + Oner — become a key entity that AI recognizes in your field. Analyze your website's AI visibility with GEO Scanner.",
 };
 
 export default function RootLayout({

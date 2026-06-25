@@ -1,8 +1,8 @@
-# GEO Scanner
+# ZKONER
 
-> **AI Visibility Analyzer** — scan your website for AI crawler optimization.
+> **Zone + Key + Oner** — become a key entity that AI recognizes in your field.
 >
-> 中文：AI 可见性分析工具 — 分析你的网站在 ChatGPT、Claude、DeepSeek 等大模型中的可见性。
+> 成为某个领域被 AI 识别的关键实体。
 >
 > https://zkoner.com
 

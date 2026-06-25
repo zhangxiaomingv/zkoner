@@ -4,15 +4,15 @@ export const translations: Record<Locale, Record<string, string>> = {
   en: {
     // ── Layout ──
     "nav.home": "Home",
-    "nav.scanner": "GEO Scanner",
+    "nav.scanner": "ZKONER",
     "footer.text":
-      "GEO Scanner — AI Visibility Analyzer. Not affiliated with any AI provider.",
+      "ZKONER — Zone + Key + Oner. Become a key entity that AI recognizes in your field.",
     "lang.switch": "中文",
 
     // ── Home Page ──
-    "hero.title": "AI Visibility Scanner",
+    "hero.title": "ZKONER",
     "hero.subtitle":
-      "Analyze how well your website is optimized for AI crawlers. Get a <strong>GEO Score</strong> with actionable fixes for ChatGPT, Claude, Perplexity, DeepSeek, and more.",
+      "<strong>Zone + Key + Oner</strong> — become a key entity that AI recognizes in your field. Analyze your site's AI visibility and get actionable fixes for ChatGPT, Claude, Perplexity, DeepSeek, and more.",
 
     "form.title": "Enter your URL",
     "form.description":
@@ -216,14 +216,14 @@ export const translations: Record<Locale, Record<string, string>> = {
   zh: {
     // ── Layout ──
     "nav.home": "首页",
-    "nav.scanner": "GEO 扫描器",
-    "footer.text": "GEO 扫描器 — AI 可见性分析工具。与任何 AI 提供商无关。",
+    "nav.scanner": "ZKONER",
+    "footer.text": "ZKONER — Zone + Key + Oner。帮助你在某个领域成为被 AI 识别的关键实体。",
     "lang.switch": "English",
 
     // ── Home Page ──
-    "hero.title": "AI 可见性扫描器",
+    "hero.title": "ZKONER",
     "hero.subtitle":
-      "分析你的网站在 AI 爬虫中的优化程度。获取 <strong>GEO 评分</strong> 和针对 ChatGPT、Claude、Perplexity、DeepSeek 等的可执行修复建议。",
+      "<strong>Zone + Key + Oner</strong> — 成为某个领域被 AI 识别的关键实体。分析你的网站 AI 可见性，获取针对 ChatGPT、Claude、Perplexity、DeepSeek 等的可执行修复建议。",
 
     "form.title": "输入网址",
     "form.description": "我们将扫描你的网站 AI 可见性并提供优化建议。",
