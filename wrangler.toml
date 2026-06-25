@@ -1,7 +1,3 @@
-name = "heikuang-geo-api"
-main = "worker.js"
+name = "heikuang-geo"
 compatibility_date = "2025-01-01"
-
-[[services]]
-binding = "PAGES"
-service = "heikuang-geo"
+compatibility_flags = ["nodejs_compat"]
