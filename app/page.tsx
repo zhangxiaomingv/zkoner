@@ -109,45 +109,7 @@ export default function HomePage() {
         </Card>
       </section>
 
-      {/* How it works */}
-      <section className="mx-auto max-w-4xl">
-        <h2 className="mb-8 text-center text-2xl font-semibold">{t("how.title")}</h2>
-        <div className="grid gap-6 sm:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
-                <Globe className="h-5 w-5" />
-              </div>
-              <CardTitle className="text-base">{t("how.step1.title")}</CardTitle>
-              <CardDescription>
-                {t("how.step1.desc")}
-              </CardDescription>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader>
-              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
-                <FileSearch className="h-5 w-5" />
-              </div>
-              <CardTitle className="text-base">{t("how.step2.title")}</CardTitle>
-              <CardDescription>
-                {t("how.step2.desc")}
-              </CardDescription>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader>
-              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
-                <Wrench className="h-5 w-5" />
-              </div>
-              <CardTitle className="text-base">{t("how.step3.title")}</CardTitle>
-              <CardDescription>
-                {t("how.step3.desc")}
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-      </section>
+      {/* How it works — removed to protect methodology */}
 
       {/* Categories */}
       <section className="mx-auto max-w-4xl">
